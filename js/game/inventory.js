@@ -49,13 +49,25 @@
     });
     return Math.round(w * 10) / 10;
   };
+  /* Kapasitenin üstü yasak değil, cezalıdır: hız düşer. Sert sınır 1.5 katıdır. */
   Inv.overloaded = () => Inv.weight() > Inv.capacity;
+  Inv.hardLimit = () => Inv.capacity * 1.5;
+
+  /* Bir eşya alınabilir mi? Görev eşyaları asla reddedilmez. */
+  Inv.canAccept = function (id, n) {
+    const it = QW.Items.get(id);
+    if (!it) return false;
+    if (it.cat === 'key') return true;
+    return Inv.weight() + (it.w || 0.2) * (n || 1) <= Inv.hardLimit();
+  };
 
   Inv.add = function (id, n, silent) {
     if (!QW.Items.get(id)) return false;
     n = n || 1;
-    if (Inv.weight() > Inv.capacity * 1.4) {
-      if (!silent) QW.HUD.toast(QW.t('inv_full'), 'bad');
+    if (!Inv.canAccept(id, n)) {
+      /* Sessiz eklemede bile uyar — yoksa eşya sessizce buharlaşır */
+      QW.HUD.toast(QW.t('inv_full') + ' (' + QW.Items.name(id) + ')', 'bad');
+      QW.Audio.sfx('deny');
       return false;
     }
     Inv.slots[id] = (Inv.slots[id] || 0) + n;
@@ -138,6 +150,18 @@
     if (!it.use) return false;
 
     const u = it.use;
+    if (u.deploy === 'beacon') {
+      if (!QW.World.placeBeacon()) return false;
+      Inv.remove(id, 1, true);
+      QW.Audio.sfx('craft');
+      return true;
+    }
+    if (u.codex) {
+      QW.Game.codexUnlock(u.codex);
+      QW.HUD.toast(QW.t('log_read'), 'good');
+      QW.Audio.sfx('quest');
+      return true;   // gemi kaydı tükenmez
+    }
     if (u.hp) P.heal(u.hp);
     if (u.o2) P.addO2(u.o2);
     if (u.sta) P.addSta(u.sta);

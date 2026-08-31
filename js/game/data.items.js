@@ -167,7 +167,8 @@
   it('beacon', { cat: 'dev', value: 60, w: 0.6, icon: { s: 'ant', c: '#ffd166', c2: '#7a5410' },
     name: { tr: 'Kamp Feneri', en: 'Camp Beacon' },
     desc: { tr: 'Kurulduğu yeri haritada işaretler ve kamp ateşi yakmanı sağlar.',
-            en: 'Marks its position on the map and lets you light a campfire.' } });
+            en: 'Marks its position on the map and lets you light a campfire.' },
+    use: { deploy: 'beacon' } });
 
   /* ------------------------------ KUŞAM --------------------------------- */
   it('suit_basic', { cat: 'gear', slot: 'suit', value: 40, w: 4, def: 3, icon: { s: 'suit', c: '#c9d4e4', c2: '#5c6880' },
@@ -294,7 +295,8 @@
 
   it('ship_log', { cat: 'key', value: 0, w: 0.1, icon: { s: 'card', c: '#ffd166', c2: '#7a5410' },
     name: { tr: 'Gemi Kaydı', en: 'Ship Log' },
-    desc: { tr: 'Argos\'un son saniyeleri.', en: 'The final seconds of the Argos.' } });
+    desc: { tr: 'Argos\'un son saniyeleri. Oku ve arşive işle.', en: 'The final seconds of the Argos. Read it into the codex.' },
+    use: { codex: 'c_wreck' } });
 
   /* --------------------------------------------------------------------- */
   const It = QW.Items = {

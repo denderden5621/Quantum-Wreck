@@ -55,7 +55,7 @@
     nRidge = U.Perlin(Wd.seed ^ 0xc2b2ae35);
     nDet   = U.Perlin(Wd.seed ^ 0x27d4eb2f);
     Wd._chunks.clear(); Wd._order.length = 0; Wd._biomeCache.clear();
-    Wd.harvested = {}; Wd.discovered = {};
+    Wd.harvested = {}; Wd.discovered = {}; Wd.beacons = [];
     Wd.day = 1; Wd.time = 0.32;
     placeSpawn();
     placePOIs();
@@ -283,6 +283,43 @@
       if (n) out.push(n);
     }
     return out;
+  };
+
+  /* Kamp feneri — oyuncunun kurduğu kalıcı dinlenme noktası */
+  Wd.beacons = [];
+  Wd.placeBeacon = function () {
+    const t = QW.Player.tilePos();
+    if (!Wd.canWalk(t.tx, t.ty, {})) { QW.HUD.toast(QW.t('act_nothing'), 'bad'); return false; }
+    /* Yalnızca başka bir dinlenme noktasına çok yakınsa reddet — küçük
+       ganimet noktaları (kapsül, harabe) fener kurmayı engellemez. */
+    const clash = Wd.pois.some(p => {
+      const isRest = p.kind === 'camp' || p.kind === 'station' || p.kind === 'wreck' || p.kind === 'lair';
+      return isRest && U.dist(t.tx, t.ty, p.x, p.y) < 10;
+    });
+    if (clash) { QW.HUD.toast(QW.t('beacon_here'), 'bad'); return false; }
+    const p = {
+      id: 'beacon_' + Wd.beacons.length + '_' + t.tx + '_' + t.ty,
+      kind: 'camp', beacon: true, x: t.tx, y: t.ty, r: 2,
+      name: { tr: 'Kamp Feneri', en: 'Camp Beacon' }
+    };
+    Wd.beacons.push({ x: t.tx, y: t.ty });
+    Wd.pois.push(p);
+    Wd.invalidate(t.tx, t.ty);
+    Wd.discover(t.tx, t.ty, 10);
+    QW.HUD.toast(QW.t('beacon_placed'), 'good');
+    return true;
+  };
+
+  /* İletişim modülü uzak kampların yerini açar */
+  Wd.revealCamps = function () {
+    let n = 0;
+    Wd.pois.forEach(p => {
+      if (p.kind === 'camp' || p.kind === 'station') {
+        if (!Wd.isDiscovered(p.x, p.y)) n++;
+        Wd.discover(p.x, p.y, 6);
+      }
+    });
+    return n;
   };
 
   Wd.poiAt = function (tx, ty) {
@@ -554,7 +591,8 @@
     return {
       seed: Wd.seed, spawn: Wd.spawn, day: Wd.day, time: Wd.time,
       harvested: Wd.harvested, discovered: Wd.discovered,
-      pois: Wd.pois.map(p => ({ id: p.id, cleared: !!p.cleared, looted: !!p.looted }))
+      beacons: Wd.beacons,
+      pois: Wd.pois.map(p => ({ id: p.id, cleared: !!p.cleared, looted: !!p.looted, lootDay: p.lootDay || 0 }))
     };
   };
   Wd.load = function (d) {
@@ -563,9 +601,17 @@
     Wd.day = d.day || 1; Wd.time = d.time || 0.32;
     Wd.harvested = d.harvested || {};
     Wd.discovered = d.discovered || {};
+    /* Kurulmuş kamp fenerlerini geri yükle */
+    Wd.beacons = d.beacons || [];
+    Wd.beacons.forEach((b, i) => {
+      Wd.pois.push({
+        id: 'beacon_' + i + '_' + b.x + '_' + b.y, kind: 'camp', beacon: true,
+        x: b.x, y: b.y, r: 2, name: { tr: 'Kamp Feneri', en: 'Camp Beacon' }
+      });
+    });
     (d.pois || []).forEach(sp => {
       const p = Wd.getPoi(sp.id);
-      if (p) { p.cleared = sp.cleared; p.looted = sp.looted; }
+      if (p) { p.cleared = sp.cleared; p.looted = sp.looted; p.lootDay = sp.lootDay || 0; }
     });
     Wd._chunks.clear(); Wd._order.length = 0;
   };

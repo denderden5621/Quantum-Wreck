@@ -113,30 +113,61 @@
     '.': '000000000000010', ':': '000010000010000', '%': '101001010100101',
     '/': '001001010100100', '?': '111001011000010', '*': '101010101000000',
     ' ': '000000000000000', '#': '101111101111101', '>': '100010001010100',
-    '<': '001010100010001', '=': '000111000111000'
+    '<': '001010100010001', '=': '000111000111000',
+    '·': '000000010000000', ',': '000000000010100', "'": '010010000000000',
+    '(': '010100100100010', ')': '010001001001010', '"': '101101000000000',
+    '_': '000000000000111', '[': '011010010010011', ']': '110010010010110'
   };
+
+  /* Türkçe aksanlı harfler: taban harf + üst/alt işaret.
+     Hücre 3x7'dir (1 üst işaret satırı, 5 harf satırı, 1 alt işaret satırı). */
+  const ACC = {
+    'Ç': ['C', null, '.1.'], 'Ş': ['S', null, '.1.'],
+    'Ğ': ['G', '111', null], 'İ': ['I', '.1.', null],
+    'Ö': ['O', '1.1', null], 'Ü': ['U', '1.1', null],
+    'Â': ['A', '.1.', null], 'Î': ['I', '.1.', null], 'Û': ['U', '.1.', null]
+  };
+
+  /* Metin yüksekliği (aksan satırları dâhil) */
+  P.textH = scale => 7 * (scale || 1);
 
   P.text = function (ctx, str, x, y, col, scale, shadow) {
     scale = scale || 1;
     str = String(str).toUpperCase();
     let cx = x | 0;
-    for (let i = 0; i < str.length; i++) {
-      const g = F[str[i]];
-      if (g) {
-        for (let r = 0; r < 5; r++) for (let c = 0; c < 3; c++) {
-          if (g[r * 3 + c] === '1') {
-            if (shadow) { ctx.fillStyle = shadow; ctx.fillRect(cx + c * scale + scale, y + r * scale + scale, scale, scale); }
+    const base = (y | 0) + scale;   // taban harf bir satır aşağıda
+
+    const cell = ch => {
+      const acc = ACC[ch];
+      if (acc) return { g: F[acc[0]], top: acc[1], bot: acc[2] };
+      return { g: F[ch], top: null, bot: null };
+    };
+
+    const stamp = (c, dx, dy) => {
+      ctx.fillStyle = c;
+      for (let i = 0; i < str.length; i++) {
+        const { g, top, bot } = cell(str[i]);
+        const gx = cx0 + i * 4 * scale + dx;
+        if (g) {
+          for (let r = 0; r < 5; r++) for (let c2 = 0; c2 < 3; c2++) {
+            if (g[r * 3 + c2] === '1') ctx.fillRect(gx + c2 * scale, base + r * scale + dy, scale, scale);
           }
         }
-        ctx.fillStyle = col;
-        for (let r = 0; r < 5; r++) for (let c = 0; c < 3; c++) {
-          if (g[r * 3 + c] === '1') ctx.fillRect(cx + c * scale, y + r * scale, scale, scale);
+        if (top) for (let c2 = 0; c2 < 3; c2++) {
+          if (top[c2] === '1') ctx.fillRect(gx + c2 * scale, base - scale + dy, scale, scale);
+        }
+        if (bot) for (let c2 = 0; c2 < 3; c2++) {
+          if (bot[c2] === '1') ctx.fillRect(gx + c2 * scale, base + 5 * scale + dy, scale, scale);
         }
       }
-      cx += 4 * scale;
-    }
-    return cx - x;
+    };
+
+    const cx0 = cx;
+    if (shadow) stamp(shadow, scale, scale);
+    stamp(col, 0, 0);
+    return str.length * 4 * scale;
   };
+
   P.textW = (str, scale) => String(str).length * 4 * (scale || 1) - (scale || 1);
 
   /* --------------------------------------------------------------

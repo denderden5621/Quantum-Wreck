@@ -44,6 +44,8 @@
     if (!C.isUnlocked(rid)) return { ok: false, why: 'lock' };
     if (r.bench === 'station' && !QW.Game.atStationBench) return { ok: false, why: 'bench' };
     if (!QW.Inventory.hasAll(r.need)) return { ok: false, why: 'mat' };
+    /* Sonucu taşıyamayacaksan malzemeyi harcama */
+    if (!r.vehicle && !QW.Inventory.canAccept(r.out.id, r.out.n || 1)) return { ok: false, why: 'full' };
     return { ok: true };
   };
 
@@ -52,7 +54,9 @@
     const chk = C.canCraft(rid);
     if (!chk.ok) {
       QW.Audio.sfx('deny');
-      QW.HUD.toast(QW.t(chk.why === 'lock' ? 'craft_noskill' : chk.why === 'bench' ? 'craft_bench_hint' : 'craft_missing'), 'bad');
+      QW.HUD.toast(QW.t(chk.why === 'lock' ? 'craft_noskill'
+        : chk.why === 'bench' ? 'craft_bench_hint'
+        : chk.why === 'full' ? 'inv_full' : 'craft_missing'), 'bad');
       return false;
     }
     QW.Inventory.consumeAll(r.need);

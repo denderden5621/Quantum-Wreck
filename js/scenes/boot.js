@@ -91,7 +91,8 @@
         ctx.fillRect((s.x * S.w) | 0, (s.y * S.h) | 0, s.s > 1.6 ? 2 : 1, 1);
       });
       /* Anomali — dönen kuantum yırtığı */
-      const cx = S.w / 2, cy = S.h * 0.42;
+      /* Anomaliyi başlık metninin altına yerleştir */
+      const cx = S.w / 2, cy = S.h * (S.portrait ? 0.76 : 0.80);
       for (let i = 0; i < 5; i++) {
         const r = 12 + i * 7 + Math.sin(t * 1.4 + i) * 3;
         ctx.strokeStyle = i % 2 ? 'rgba(77,242,200,0.35)' : 'rgba(122,162,255,0.25)';

@@ -53,6 +53,11 @@
     s.spd *= U.clamp(1 - st * 0.18, 0.75, 1);
     /* Dayanıklılık bittiğinde yavaşlarsın */
     if (Pl.sta <= 0) s.spd *= 0.55;
+    /* Aşırı yük hızı düşürür (yasak değil, cezalı) */
+    if (QW.Inventory.overloaded()) {
+      const over = QW.Inventory.weight() / QW.Inventory.capacity;
+      s.spd *= U.clamp(1 - (over - 1) * 0.6, 0.5, 1);
+    }
     return s;
   };
 

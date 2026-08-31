@@ -160,6 +160,14 @@
     device_broke:{ tr: '{name} arızalandı!',     en: '{name} has failed!' },
 
     /* --- araçlar --- */
+    beacon_placed:{ tr: 'Kamp feneri kuruldu. Burada dinlenebilirsin.',
+                    en: 'Camp beacon deployed. You can rest here.' },
+    beacon_here:  { tr: 'Burada zaten bir fener var.', en: 'A beacon already stands here.' },
+    beacon_name:  { tr: 'Kamp Feneri',            en: 'Camp Beacon' },
+    comms_reveal: { tr: 'İletişim modülü uzak kampların sinyalini yakaladı.',
+                    en: 'The comms module picked up distant camp signals.' },
+    log_read:     { tr: 'Gemi kaydı çözüldü — arşive işlendi.',
+                    en: 'Ship log decoded — filed in the codex.' },
     veh_none:     { tr: 'Hangar boş.',            en: 'Hangar is empty.' },
     veh_mount:    { tr: 'Bin',                    en: 'Mount' },
     veh_dismount: { tr: 'İn',                     en: 'Dismount' },

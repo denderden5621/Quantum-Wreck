@@ -382,7 +382,7 @@
     el.body.appendChild(cv);
 
     el.body.appendChild(sec(QW.t('p_map')));
-    el.body.appendChild(statline(QW.t('b_wreck'), QW.World.spawn.x + ',' + QW.World.spawn.y));
+    /* Keşfedilmiş her POI'ye tile cinsinden mesafe */
     QW.World.pois.forEach(p => {
       if (!QW.World.isDiscovered(p.x, p.y)) return;
       const d = Math.round(U.dist(t.tx, t.ty, p.x, p.y));
@@ -438,6 +438,7 @@
           fn: () => {
             if (stock <= 0) { QW.HUD.toast(QW.t('trade_nostock'), 'bad'); return; }
             if (QW.Player.credits < s.price) { QW.HUD.toast(QW.t('trade_nocredit'), 'bad'); QW.Audio.sfx('deny'); return; }
+            if (!QW.Inventory.canAccept(s.id, 1)) { QW.HUD.toast(QW.t('inv_full'), 'bad'); QW.Audio.sfx('deny'); return; }
             QW.Player.addCredits(-s.price);
             st.stock[s.id] = stock - 1;
             QW.Inventory.add(s.id, 1);
@@ -507,6 +508,9 @@
     if (b.once && st.doneBarters.indexOf(key) >= 0) return;
     if (!QW.Inventory.hasAll(b.give)) {
       QW.Audio.sfx('deny'); QW.HUD.toast(QW.t('trade_cant'), 'bad'); return;
+    }
+    if (b.get && !QW.Inventory.canAccept(b.get.id, b.get.n || 1)) {
+      QW.Audio.sfx('deny'); QW.HUD.toast(QW.t('inv_full'), 'bad'); return;
     }
     QW.Inventory.consumeAll(b.give);
     if (b.special === 'dura') {

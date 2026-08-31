@@ -67,6 +67,13 @@
       caps.inCamp = !!(nearPoi && (nearPoi.kind === 'camp' || nearPoi.kind === 'station'));
       caps.scan = QW.Crafting.hasPassive('scan');
 
+      /* İletişim modülü takılıysa uzak kamplar haritada belirir */
+      if (!QW.Game.flags.comms_reveal && QW.Crafting.hasPassive('comms')) {
+        QW.Game.setFlag('comms_reveal', true);
+        const n = Wd.revealCamps();
+        if (n) QW.HUD.toast(QW.t('comms_reveal'), 'info');
+      }
+
       P0.move(dt, QW.Input.axis.x, QW.Input.axis.y, caps);
       P0.tick(dt, caps);
       QW.Vehicles.tick(dt, P0.moving);
@@ -224,7 +231,7 @@
       else if (poi.kind === 'lair') label = QW.t('act_enter');
       else if (poi.kind === 'wreck') label = QW.t('act_rest');
       if (best > 0.5 || poi.kind === 'camp' || poi.kind === 'station' || poi.kind === 'lair') {
-        interactTarget = { kind: 'poi', poi, label: label + ' — ' + QW.L(poi.name) };
+        interactTarget = { kind: 'poi', poi, label: label + ' - ' + QW.L(poi.name) };
       }
     }
   }
@@ -236,14 +243,14 @@
     const w = P.textW(txt, 1) + 8;
     const x = Math.max(2, Math.min(S.w - w - 2, (S.w - w) / 2 | 0));
     const y = S.h - (S.portrait ? 104 : 34);
-    ctx.fillStyle = 'rgba(5,7,13,0.78)';
-    ctx.fillRect(x, y - 3, w, 12);
-    P.frame(ctx, x, y - 3, w, 12, '#26365c');
+    ctx.fillStyle = 'rgba(5,7,13,0.80)';
+    ctx.fillRect(x, y - 4, w, 15);
+    P.frame(ctx, x, y - 4, w, 15, '#26365c');
     P.text(ctx, txt, x + 4, y + 1, '#dff6ff', 1, '#000000');
     /* A tuşu göstergesi */
     ctx.fillStyle = '#4df2c8';
-    ctx.fillRect(x - 8, y - 1, 6, 6);
-    P.text(ctx, 'A', x - 7, y, '#04120e', 1);
+    ctx.fillRect(x - 9, y - 1, 7, 8);
+    P.text(ctx, 'A', x - 8, y, '#04120e', 1);
   }
 
   function doInteract() {
@@ -274,6 +281,7 @@
   function doPoi(poi) {
     switch (poi.kind) {
       case 'camp':
+        if (poi.beacon || !poi.npc) { QW.Panels.show('rest'); break; }
         talkTo(poi.npc, poi);
         break;
 
