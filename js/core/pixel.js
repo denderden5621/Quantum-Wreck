@@ -133,7 +133,9 @@
 
   P.text = function (ctx, str, x, y, col, scale, shadow) {
     scale = scale || 1;
-    str = String(str).toUpperCase();
+    /* Yerel ayara duyarlı büyütme: Türkçede i -> İ, ı -> I */
+    const loc = (window.QW && QW.I18N) ? QW.I18N.lang : 'en';
+    str = String(str).toLocaleUpperCase(loc);
     let cx = x | 0;
     const base = (y | 0) + scale;   // taban harf bir satır aşağıda
 
