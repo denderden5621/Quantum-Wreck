@@ -9,6 +9,7 @@
   let cam = { x: 0, y: 0 };
   let interactTarget = null;
   let hintT = 0, encounterLock = 0, dead = false;
+  let lastBiome = null;
 
   /* Öğretici nesneleri — enkazın yanında iki etkileşim noktası */
   function tutorials() {
@@ -72,6 +73,19 @@
         QW.Game.setFlag('comms_reveal', true);
         const n = Wd.revealCamps();
         if (n) QW.HUD.toast(QW.t('comms_reveal'), 'info');
+      }
+
+      /* Biyom değişince bağlama özel uyarılar */
+      const bk = Wd.biomeKeyAt(tp.tx, tp.ty);
+      if (bk !== lastBiome) {
+        if (bk === 'swamp' && !caps.allTerrain) {
+          QW.HUD.toast(QW.t('block_swamp'), 'bad');
+          QW.HUD.toast(QW.t('need_rover'), 'info');
+        } else if (bk === 'chasm' && caps.fly && !QW.Game.flags.first_glide) {
+          QW.Game.setFlag('first_glide', true);
+          QW.HUD.toast(QW.t('drone_glide'), 'good');
+        }
+        lastBiome = bk;
       }
 
       P0.move(dt, QW.Input.axis.x, QW.Input.axis.y, caps);
@@ -263,6 +277,9 @@
       QW.HUD.toast(it.tut.done(), 'good');
       if (it.tut.flag === 'map_booted') QW.HUD.setMinimap(true);
       if (it.tut.flag === 'leak_sealed') QW.Player.addO2(60);
+      if (QW.Game.flags.leak_sealed && QW.Game.flags.map_booted) {
+        setTimeout(() => QW.HUD.toast(QW.t('tut_free'), 'info'), 900);
+      }
       return;
     }
 

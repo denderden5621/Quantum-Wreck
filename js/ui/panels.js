@@ -234,6 +234,7 @@
         b.appendChild(elm('span', null, (nd.ohm === null ? 'OL' : nd.ohm) + ' ' + QW.t('mm_ohm')));
       } else {
         b.appendChild(elm('span', null, QW.t('mm_unmeasured')));
+        b.appendChild(elm('span', null, F.probes > 0 ? QW.t('mm_measure') : QW.t('mm_accuse')));
       }
       tap(b, () => {
         if (F.done) return;
@@ -310,6 +311,7 @@
         title: QW.L(q.def.name),
         sub: QW.L(q.def.desc),
         sub2: (q.step ? QW.L(q.step.text) : '') + '  ' + QW.t('q_progress', { a: q.have, b: q.need })
+          + rewardText(q.def)
       }));
     });
     const done = Object.keys(QW.Quests.done);
@@ -321,6 +323,15 @@
       });
     }
   };
+
+  function rewardText(def) {
+    const r = def.reward || {};
+    const bits = [];
+    if (r.ec) bits.push(r.ec + ' EC');
+    if (r.items) Object.keys(r.items).forEach(k => bits.push(QW.Items.name(k) + ' x' + r.items[k]));
+    if (r.unlock) { const rec = QW.Recipes.get(r.unlock); if (rec) bits.push('★ ' + QW.L(rec.name)); }
+    return bits.length ? '   ' + QW.t('q_reward') + ': ' + bits.join(', ') : '';
+  }
 
   /* --------------------------------- ARŞİV ------------------------------- */
   VIEWS.codex = function () {
@@ -355,6 +366,7 @@
         sub2: QW.t('veh_battery') + ' ' + Math.round(v.battery) + '/' + v.batteryMax +
               '   ' + QW.t('veh_dura') + ' ' + Math.round(v.dura) + '/' + v.duraMax +
               (v.broken ? '  ⚠' : ''),
+        right: active ? QW.t('veh_dismount') : QW.t('veh_mount'),
         on: active,
         fn: () => { QW.Vehicles.toggle(id); Pn.render(); }
       }));
@@ -380,6 +392,22 @@
     const t = QW.Player.tilePos();
     QW.World.drawMinimap(cv, t.tx, t.ty, 300, false);
     el.body.appendChild(cv);
+
+    /* Hava tahmini — yalnızca hava kalitesi sensörü varsa */
+    el.body.appendChild(sec(QW.t('w_clear').toUpperCase()));
+    if (QW.Crafting.hasPassive('forecast')) {
+      const w = QW.Weather;
+      if (w.current.id !== 'clear') {
+        el.body.appendChild(note(QW.t('w_started', { w: QW.t(w.current.name) }), 'warn'));
+      } else if (w.incoming) {
+        el.body.appendChild(note(QW.t('w_incoming', {
+          w: QW.t(w.incoming.type.name), n: Math.max(1, Math.round(w.timer / 6)) }), 'warn'));
+      } else {
+        el.body.appendChild(note(QW.t('w_clear'), 'good'));
+      }
+    } else {
+      el.body.appendChild(note(QW.t('w_need_sensor')));
+    }
 
     el.body.appendChild(sec(QW.t('p_map')));
     /* Keşfedilmiş her POI'ye tile cinsinden mesafe */
@@ -409,6 +437,10 @@
 
     if (cur === 'barter') {
       el.body.appendChild(note(QW.L(npc.lines.trade)));
+      if (Array.isArray(npc.buys)) {
+        el.body.appendChild(note(QW.t('trade_wants', {
+          list: npc.buys.map(id => QW.Items.name(id)).join(', ') })));
+      }
       (npc.barter || []).forEach((b, i) => {
         if (!b.give || (!b.get && !b.unlock)) return;
         const key = npcId + '_' + i;

@@ -114,6 +114,7 @@
         fn: () => { cfg.shirtItem = id; QW.Audio.sfx('ui'); render(); }
       }));
     });
+    body.appendChild(elm('div', 'sec', QW.t('cc_fabric')));
     body.appendChild(swatches(CLOTH, cfg.shirtColor, c => { cfg.shirtColor = c; render(); }));
 
     /* Bot seçimi */

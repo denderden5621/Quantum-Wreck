@@ -9,7 +9,6 @@
 
   const STR = {
     /* --- genel --- */
-    lang_name:        { tr: 'Türkçe',            en: 'English' },
     ok:               { tr: 'Tamam',             en: 'OK' },
     cancel:           { tr: 'Vazgeç',            en: 'Cancel' },
     close:            { tr: 'Kapat',             en: 'Close' },
@@ -17,7 +16,6 @@
     yes:              { tr: 'Evet',              en: 'Yes' },
     no:               { tr: 'Hayır',             en: 'No' },
     none:             { tr: 'yok',               en: 'none' },
-    confirm:          { tr: 'Onayla',            en: 'Confirm' },
     continue:         { tr: 'Devam',             en: 'Continue' },
 
     /* --- başlangıç / menü --- */
@@ -26,13 +24,11 @@
                         en: 'a survival log from inside the quantum anomaly' },
     new_game:         { tr: 'Yeni Oyun',         en: 'New Game' },
     load_game:        { tr: 'Kayıtlı Oyunu Yükle', en: 'Load Save' },
-    language:         { tr: 'Dil / Language',    en: 'Language / Dil' },
     delete_save:      { tr: 'Kaydı Sil',         en: 'Delete Save' },
     delete_save_q:    { tr: 'Kayıt tamamen silinsin mi?', en: 'Delete the save permanently?' },
     saved:            { tr: 'Kaydedildi',        en: 'Saved' },
     save_deleted:     { tr: 'Kayıt silindi',     en: 'Save deleted' },
     no_save:          { tr: 'Kayıt bulunamadı',  en: 'No save found' },
-    tap_to_start:     { tr: 'Başlamak için dokun', en: 'Tap to begin' },
     audio_on:         { tr: 'Ses: Açık',         en: 'Sound: On' },
     audio_off:        { tr: 'Ses: Kapalı',       en: 'Sound: Off' },
 
@@ -98,7 +94,6 @@
     p_map:      { tr: 'HARİTA',         en: 'MAP' },
     p_char:     { tr: 'KARAKTER',       en: 'CHARACTER' },
     p_quest:    { tr: 'GÖREVLER',       en: 'QUESTS' },
-    p_trade:    { tr: 'TAKAS',          en: 'TRADE' },
     p_codex:    { tr: 'ARŞİV',          en: 'CODEX' },
     p_settings: { tr: 'AYARLAR',        en: 'SETTINGS' },
     p_garage:   { tr: 'HANGAR',         en: 'HANGAR' },
@@ -163,7 +158,6 @@
     beacon_placed:{ tr: 'Kamp feneri kuruldu. Burada dinlenebilirsin.',
                     en: 'Camp beacon deployed. You can rest here.' },
     beacon_here:  { tr: 'Burada zaten bir fener var.', en: 'A beacon already stands here.' },
-    beacon_name:  { tr: 'Kamp Feneri',            en: 'Camp Beacon' },
     comms_reveal: { tr: 'İletişim modülü uzak kampların sinyalini yakaladı.',
                     en: 'The comms module picked up distant camp signals.' },
     log_read:     { tr: 'Gemi kaydı çözüldü — arşive işlendi.',
@@ -171,8 +165,6 @@
     veh_none:     { tr: 'Hangar boş.',            en: 'Hangar is empty.' },
     veh_mount:    { tr: 'Bin',                    en: 'Mount' },
     veh_dismount: { tr: 'İn',                     en: 'Dismount' },
-    veh_deploy:   { tr: 'Konuşlandır',            en: 'Deploy' },
-    veh_recall:   { tr: 'Geri çağır',             en: 'Recall' },
     veh_battery:  { tr: 'Batarya',                en: 'Battery' },
     veh_dura:     { tr: 'Dayanıklılık',           en: 'Durability' },
     veh_no_bat:   { tr: 'Batarya bitti.',         en: 'Battery depleted.' },
@@ -244,7 +236,6 @@
     trade_sell:     { tr: 'Sat',                   en: 'Sell' },
     trade_barter:   { tr: 'Takas',                 en: 'Barter' },
     trade_give:     { tr: 'Ver',                   en: 'Give' },
-    trade_get:      { tr: 'Al',                    en: 'Receive' },
     trade_done:     { tr: 'Takas tamamlandı.',     en: 'Trade complete.' },
     trade_cant:     { tr: 'Yeterli malzemen yok.', en: 'You lack the goods.' },
     trade_nocredit: { tr: 'Yeterli kredin yok.',   en: 'Not enough credits.' },
@@ -287,7 +278,6 @@
     cb_shielded:  { tr: '{name} kalkan aldı.',  en: '{name} gains a shield.' },
     cb_burn:      { tr: '{name} yanıyor ({n}).', en: '{name} burns ({n}).' },
     cb_turn:      { tr: 'Tur {n}',              en: 'Turn {n}' },
-    cb_revive:    { tr: 'Acil durum modülü seni ayağa kaldırdı.', en: 'The emergency module brings you back up.' },
 
     /* --- ölüm --- */
     death_title:  { tr: 'SİNYAL KESİLDİ',        en: 'SIGNAL LOST' },

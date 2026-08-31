@@ -203,6 +203,11 @@
       /* Hava olayının doğrudan etkisi */
       const wdmg = QW.Weather.damagePerSecond(st);
       if (wdmg > 0) Pl.damage(wdmg, QW.Weather.current.dmgType || 'rad');
+      else if (QW.Weather.isSevere() && !Pl._shieldNoted) {
+        Pl._shieldNoted = true;
+        QW.HUD.toast(QW.t('w_shielded'), 'good');
+      }
+      if (!QW.Weather.isSevere()) Pl._shieldNoted = false;
       if (QW.Weather.current.id === 'rad') Pl.rad = U.clamp(Pl.rad + 1.2 * (1 - (st.resist.rad || 0)), 0, 100);
       else Pl.rad = U.clamp(Pl.rad - 0.4, 0, 100);
       if (Pl.rad > 75) Pl.damage(2, 'rad');
