@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>Kuantum Enkazı / Quantum Wreck</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#05070d">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="description" content="Kuantum Enkazı - 8-bit uzay hayatta kalma RPG'si / Quantum Wreck - an 8-bit space survival RPG">
+<link rel="stylesheet" href="css/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' fill='%2305070d'/><rect x='5' y='3' width='6' height='10' fill='%234df2c8'/></svg>">
+</head>
+<body>
+
+<!-- ============ OYUN KATMANI / GAME LAYER ============ -->
+<div id="stage">
+  <canvas id="screen" width="320" height="180"></canvas>
+
+  <!-- CRT / glitch kaplamaları -->
+  <div id="scanlines"></div>
+  <div id="glitch-overlay"></div>
+  <div id="flash"></div>
+  <div id="vignette"></div>
+
+  <!-- ============ HUD ============ -->
+  <div id="hud" class="hidden">
+    <div id="hud-left">
+      <div class="bar" data-bar="hp"><span class="bar-ico">HP</span><i></i><b></b></div>
+      <div class="bar" data-bar="o2"><span class="bar-ico">O2</span><i></i><b></b></div>
+      <div class="bar" data-bar="sta"><span class="bar-ico">ST</span><i></i><b></b></div>
+      <div class="bar" data-bar="str"><span class="bar-ico">PS</span><i></i><b></b></div>
+    </div>
+    <div id="hud-right">
+      <div id="hud-clock">00:00</div>
+      <div id="hud-weather">--</div>
+      <div id="hud-credits">0 EC</div>
+      <div id="hud-biome">--</div>
+    </div>
+    <canvas id="minimap" width="72" height="72" class="hidden"></canvas>
+    <div id="hud-quest"><span></span></div>
+  </div>
+
+  <!-- ============ DOKUNMATİK KONTROLLER / TOUCH CONTROLS ============ -->
+  <div id="touch" class="hidden">
+    <div id="dpad" aria-label="D-Pad">
+      <div class="dp dp-up"    data-dir="up"></div>
+      <div class="dp dp-down"  data-dir="down"></div>
+      <div class="dp dp-left"  data-dir="left"></div>
+      <div class="dp dp-right" data-dir="right"></div>
+      <div class="dp-nub"></div>
+    </div>
+    <div id="actions">
+      <button class="abtn" id="btn-b" data-btn="b">B</button>
+      <button class="abtn" id="btn-a" data-btn="a">A</button>
+    </div>
+    <div id="sysbtns">
+      <button class="sysbtn" data-open="menu" title="Menu">☰</button>
+      <button class="sysbtn" data-open="craft" title="Craft">⚒</button>
+      <button class="sysbtn" data-open="map" title="Map">◈</button>
+    </div>
+  </div>
+
+  <!-- ============ DİYALOG KUTUSU / DIALOG BOX ============ -->
+  <div id="dialog" class="hidden">
+    <div id="dialog-portrait"><canvas width="32" height="32"></canvas></div>
+    <div id="dialog-body">
+      <div id="dialog-name"></div>
+      <div id="dialog-text"></div>
+      <div id="dialog-choices"></div>
+      <div id="dialog-next">▼</div>
+    </div>
+  </div>
+
+  <!-- ============ SAVAŞ ARAYÜZÜ / COMBAT UI ============ -->
+  <div id="combat-ui" class="hidden">
+    <div id="combat-top">
+      <div class="cbar enemy"><span class="cname"></span><i></i></div>
+    </div>
+    <div id="combat-log"></div>
+    <div id="combat-bottom">
+      <div id="combat-self">
+        <div class="cbar self hp"><span>HP</span><i></i></div>
+        <div class="cbar self ep"><span>EN</span><i></i></div>
+      </div>
+      <div id="combat-actions"></div>
+    </div>
+  </div>
+
+  <!-- ============ TAM EKRAN PANELLER / FULLSCREEN PANELS ============ -->
+  <div id="panel" class="hidden">
+    <div id="panel-head">
+      <div id="panel-title"></div>
+      <button id="panel-close">✕</button>
+    </div>
+    <div id="panel-tabs"></div>
+    <div id="panel-body"></div>
+    <div id="panel-foot"></div>
+  </div>
+
+  <!-- ============ BİLDİRİMLER / TOASTS ============ -->
+  <div id="toasts"></div>
+
+  <!-- ============ TAM EKRAN METİN SAHNELERİ ============ -->
+  <div id="cinema" class="hidden">
+    <div id="cinema-inner">
+      <h1 id="cinema-title"></h1>
+      <p id="cinema-text"></p>
+      <div id="cinema-actions"></div>
+    </div>
+  </div>
+
+  <div id="rotate-hint" class="hidden"></div>
+</div>
+
+<!-- ============ ÇEKİRDEK / CORE ============ -->
+<script src="js/core/utils.js"></script>
+<script src="js/core/i18n.js"></script>
+<script src="js/core/audio.js"></script>
+<script src="js/core/input.js"></script>
+<script src="js/core/pixel.js"></script>
+<script src="js/core/scene.js"></script>
+<script src="js/core/save.js"></script>
+
+<!-- ============ VERİ / DATA ============ -->
+<script src="js/game/data.items.js"></script>
+<script src="js/game/data.craft.js"></script>
+<script src="js/game/data.enemies.js"></script>
+<script src="js/game/data.npc.js"></script>
+<script src="js/game/data.quests.js"></script>
+
+<!-- ============ SİSTEMLER / SYSTEMS ============ -->
+<script src="js/game/world.js"></script>
+<script src="js/game/weather.js"></script>
+<script src="js/game/sprites.js"></script>
+<script src="js/game/player.js"></script>
+<script src="js/game/inventory.js"></script>
+<script src="js/game/crafting.js"></script>
+<script src="js/game/vehicles.js"></script>
+<script src="js/game/entities.js"></script>
+<script src="js/game/combat.js"></script>
+<script src="js/game/quests.js"></script>
+
+<!-- ============ ARAYÜZ / UI ============ -->
+<script src="js/ui/hud.js"></script>
+<script src="js/ui/dialog.js"></script>
+<script src="js/ui/panels.js"></script>
+
+<!-- ============ SAHNELER / SCENES ============ -->
+<script src="js/scenes/boot.js"></script>
+<script src="js/scenes/intro.js"></script>
+<script src="js/scenes/creator.js"></script>
+<script src="js/scenes/overworld.js"></script>
+<script src="js/scenes/battle.js"></script>
+
+<script src="js/main.js"></script>
+</body>
+</html>
