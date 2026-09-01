@@ -33,9 +33,12 @@
         poison: 0, stun: 0, blind: 0, guard: 0
       },
       turn: 1, boss, phase: 'player', log: [], over: null,
-      fx: null, usedFlee: 0, cooldown: {}
+      fx: null, usedFlee: 0, cooldown: {},
+      /* Kuantum Yansıması oyuncunun hamlelerini ezberleyip tekrarlar */
+      mirror: !!def.mirror, lastAction: null, learned: []
     };
-    QW.Audio.playMusic(boss ? 'boss' : 'battle');
+    /* Yansımanın kendi teması var: senin melodinin tersten çalınmış hâli */
+    QW.Audio.playMusic(def.mirror ? 'echo' : boss ? 'boss' : 'battle');
     CB.log(QW.t('cb_start', { name: CB.s.e.name }));
     if (boss && def.intro) CB.log(QW.L(def.intro));
     return CB.s;
@@ -231,8 +234,20 @@
     const s = CB.s; if (!s || s.phase !== 'player') return;
     const wep = QW.Items.get(QW.Player.equip.weapon);
     const element = wep && wep.id === 'arc_lance' ? 'shock' : wep && wep.id === 'rail_pistol' ? 'shock' : 'heat';
+    CB.remember(s, { kind: 'attack', element, name: wep ? QW.Items.name(wep.id) : '' });
     CB.hit(s, 1.0, element, false);
     CB.endPlayerTurn();
+  };
+
+  /* Yansıma için hamle kaydı */
+  CB.remember = function (s, act) {
+    s.lastAction = act;
+    if (!s.mirror) return;
+    const label = act.name || act.id || act.kind;
+    if (label && s.learned.indexOf(label) < 0) {
+      s.learned.push(label);
+      CB.log(QW.t('echo_learn', { name: label }));
+    }
   };
 
   CB.playerTactic = function (id) {
@@ -243,6 +258,7 @@
     if (!st.ok) { QW.Audio.sfx('deny'); QW.HUD.toast(st.why, 'bad'); return; }
     s.p.energy -= t.cost;
     if (t.cd) s.cooldown[t.id] = t.cd + 1;
+    CB.remember(s, { kind: 'tactic', id: t.id, name: QW.L(t.name) });
     t.run(s);
     CB.endPlayerTurn();
   };
@@ -250,6 +266,7 @@
   CB.playerItem = function (itemId) {
     const s = CB.s; if (!s || s.phase !== 'player') return;
     if (!QW.Inventory.use(itemId)) { QW.Audio.sfx('deny'); return; }
+    CB.remember(s, { kind: 'item', id: itemId, name: QW.Items.name(itemId) });
     CB.log(QW.Items.name(itemId));
     CB.endPlayerTurn();
   };
@@ -302,6 +319,9 @@
       return;
     }
 
+    /* Yansıma: rastgele hamle seçmez, oyuncunun son hamlesini uygular */
+    if (s.mirror) { CB.mirrorTurn(s); return; }
+
     const moves = s.e.meta.moves || [{ id: 'hit', w: 1, dmg: 1 }];
     let total = 0; moves.forEach(m => { total += m.w; });
     let r = Math.random() * total, mv = moves[0];
@@ -333,6 +353,79 @@
         if (mv.kind === 'stress') { QW.Player.addStress(10); CB.log(QW.t('stress_high')); }
         if (mv.kind === 'drain') { s.e.hp = Math.min(s.e.hpMax, s.e.hp + Math.round(dmg * 0.4)); }
       }
+    }
+
+    if (QW.Player.hp <= 0) { s.phase = 'over'; s.over = 'lose'; return; }
+    CB.startPlayerTurn();
+  };
+
+  /* Yansımanın sırası: oyuncunun kendi hamlesi ona döner.
+     Bu bir savaş değil, kendi alışkanlıklarınla oynanan bir satrançtır:
+     vurursan vurur, iyileşirsen iyileşir, siper alırsan siper alır. */
+  CB.mirrorTurn = function (s) {
+    const act = s.lastAction;
+    const pst = QW.Player.stats();
+
+    if (!act) {
+      CB.log(QW.L({ tr: 'Yansıma seni izliyor. Hiçbir şey yapmıyor.',
+                    en: 'The echo watches you. It does nothing.' }));
+      CB.startPlayerTurn();
+      return;
+    }
+
+    CB.log(QW.t('echo_mirror'));
+
+    const strike = (mult, element, note) => {
+      let dmg = s.e.atk * mult * (0.9 + Math.random() * 0.2);
+      dmg -= pst.def * 0.5;
+      if (s.p.guard) dmg *= 0.5;
+      if (s.p.shield > 0) { const abs = Math.min(s.p.shield, dmg); s.p.shield -= abs; dmg -= abs; }
+      dmg = Math.max(1, Math.round(dmg));
+      QW.Player.damage(dmg, element);
+      QW.Audio.sfx('hurt');
+      s.fx = { kind: 'phit', t: 0.3, n: dmg };
+      CB.log((note ? note + ' ' : '') + QW.t('cb_hit', { a: s.e.name, b: QW.Player.name, n: dmg }));
+    };
+
+    if (act.kind === 'attack') {
+      strike(1.0, act.element);
+    } else if (act.kind === 'item') {
+      /* İyileşirsen o da iyileşir */
+      const heal = Math.round(s.e.hpMax * 0.10);
+      s.e.hp = Math.min(s.e.hpMax, s.e.hp + heal);
+      CB.log(QW.L({ tr: s.e.name + ' de kendini onardı (+' + heal + ').',
+                    en: s.e.name + ' repairs itself too (+' + heal + ').' }));
+    } else if (act.kind === 'tactic') {
+      switch (act.id) {
+        case 'guard':
+          s.e.defending = 2;
+          CB.log(QW.t('cb_def_up', { name: s.e.name }));
+          break;
+        case 'scan':
+          /* Senin zayıf noktanı bulur: sonraki vuruşları daha sert */
+          s.e.atk = Math.round(s.e.atk * 1.15);
+          CB.log(QW.L({ tr: 'Yansıma senin zayıf noktanı buldu.',
+                        en: 'The echo has found your weak point.' }));
+          break;
+        case 'overload':
+          strike(1.9, 'shock');
+          break;
+        case 'distract':
+          s.p.blind = 2;
+          CB.log(QW.L({ tr: 'Yansımanın dronu gözünü aldı.',
+                        en: 'The echo’s drone dazzles you.' }));
+          break;
+        case 'jam':
+          s.p.energy = Math.max(0, s.p.energy - 10);
+          CB.log(QW.L({ tr: 'Yansıma senin telsizini bozdu. Enerji -10.',
+                        en: 'The echo jams your radio. Energy -10.' }));
+          break;
+        case 'cryo': strike(1.4, 'cold'); break;
+        case 'acidbomb': strike(1.1, 'acid'); s.p.poison = 3; break;
+        default: strike(1.4, 'heat');
+      }
+    } else {
+      strike(1.0, null);
     }
 
     if (QW.Player.hp <= 0) { s.phase = 'over'; s.over = 'lose'; return; }

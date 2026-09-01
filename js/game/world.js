@@ -112,7 +112,7 @@
 
     /* Enkaz — başlangıç noktası, çekirdek yuvası burada */
     P0.push({ id: 'wreck', kind: 'wreck', x: sp.x, y: sp.y, r: 7,
-      name: { tr: 'Argos Enkazı', en: 'The Argos Wreck' } });
+      name: { tr: 'Göktay Enkazı', en: 'The Göktay Wreck' } });
 
     /* Merkez İstasyon */
     const st = findBiomeSpot(rnd, ['plains', 'shore', 'desert'], 22, sp, 55);
@@ -136,6 +136,18 @@
       P0.push({ id: 'lair_' + bk, kind: 'lair', x: s.x, y: s.y, r: 3, boss: bid, biome: bk,
         name: e.name });
     });
+
+    /* Çöken Arşiv — Hafıza Bekçisi Alpha'nın kubbesi (anlatı bölümü) */
+    const ar = findBiomeSpot(rnd, ['plains', 'desert', 'shore'], 30, sp, 75);
+    P0.push({ id: 'archive', kind: 'archive', x: ar.x, y: ar.y, r: 4,
+      boss: 'boss_memory_alpha',
+      name: { tr: 'Çöken Arşiv', en: 'The Collapsed Archive' } });
+
+    /* Kuruyan Vaha — Kayıp Leviathan'ın krateri (anlatı bölümü) */
+    const oa = findBiomeSpot(rnd, ['swamp', 'shore', 'plains'], 28, sp, 85);
+    P0.push({ id: 'oasis', kind: 'oasis', x: oa.x, y: oa.y, r: 4,
+      boss: 'boss_lost_leviathan', healed: false,
+      name: { tr: 'Kuruyan Vaha', en: 'The Drying Oasis' } });
 
     /* Yıkık kütüphaneler — veri kristali kaynağı */
     for (let i = 0; i < 6; i++) {
@@ -487,6 +499,20 @@
     const i = Wd._order.indexOf(k); if (i >= 0) Wd._order.splice(i, 1);
   };
 
+  /* POI çizimleri chunk sınırlarını aşabilir (vaha ±40 px). Görünüşü değişen
+     bir POI'de sadece merkez chunk'ı tazelemek yarısı eski kalan bir görüntü
+     bırakır; bu yüzden çevredeki tüm chunk'lar geçersizleştirilir. */
+  Wd.invalidateArea = function (tx, ty, rTiles) {
+    const r = rTiles || 5;
+    for (let y = ty - r; y <= ty + r; y += CH) {
+      for (let x = tx - r; x <= tx + r; x += CH) Wd.invalidate(x, y);
+    }
+    Wd.invalidate(tx + r, ty + r);
+    Wd.invalidate(tx - r, ty - r);
+    Wd.invalidate(tx + r, ty - r);
+    Wd.invalidate(tx - r, ty + r);
+  };
+
   /* ---------------------------------------------------------------
    * ÇİZİM
    * ------------------------------------------------------------- */
@@ -538,7 +564,9 @@
       const y = Math.round((p.y - (pty - half)) / step);
       if (x < 0 || y < 0 || x >= s || y >= s) return;
       const c = p.kind === 'station' ? '#4df2c8' : p.kind === 'camp' ? '#ffd166'
-              : p.kind === 'lair' ? '#ff5d7a' : p.kind === 'wreck' ? '#ffffff' : '#7aa2ff';
+              : p.kind === 'lair' ? '#ff5d7a' : p.kind === 'wreck' ? '#ffffff'
+              : p.kind === 'archive' ? '#8fd0ff' : p.kind === 'oasis' ? (p.healed ? '#4a9fd0' : '#9be24a')
+              : '#7aa2ff';
       ctx.fillStyle = c; ctx.fillRect(x - 1, y - 1, 3, 3);
     });
     /* Oyuncu */
@@ -587,12 +615,60 @@
   /* ---------------------------------------------------------------
    * KAYIT
    * ------------------------------------------------------------- */
+  /* Keşif ızgarası 96x96 hücredir (tile >> 2). Anahtar başına "x,y" dizesi
+     yazmak 90 KB'a çıkıyordu; bit maskesi + base64 bunu ~1.5 KB'a indirir ve
+     otomatik kaydın maliyetini düşürür. */
+  const DG = (W >> 2) + 1;                     // keşif ızgarası genişliği
+
+  function packDiscovered() {
+    const bytes = new Uint8Array(Math.ceil(DG * DG / 8));
+    Object.keys(Wd.discovered).forEach(k => {
+      const c = k.indexOf(',');
+      const x = +k.slice(0, c), y = +k.slice(c + 1);
+      if (x < 0 || y < 0 || x >= DG || y >= DG) return;
+      const bit = y * DG + x;
+      bytes[bit >> 3] |= 1 << (bit & 7);
+    });
+    let bin = '';
+    for (let i = 0; i < bytes.length; i += 4096) {
+      bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 4096));
+    }
+    return btoa(bin);
+  }
+
+  function unpackDiscovered(b64) {
+    const out = {};
+    if (!b64) return out;
+    let bin;
+    try { bin = atob(b64); } catch (e) { return out; }
+    for (let i = 0; i < bin.length; i++) {
+      const byte = bin.charCodeAt(i);
+      if (!byte) continue;
+      for (let b = 0; b < 8; b++) {
+        if (!(byte & (1 << b))) continue;
+        const bit = i * 8 + b;
+        out[(bit % DG) + ',' + Math.floor(bit / DG)] = 1;
+      }
+    }
+    return out;
+  }
+
+  /* Hasat kayıtları 2 günde yenilendiği için eskiyenleri saklamaya gerek yok */
+  function pruneHarvested() {
+    const out = {};
+    Object.keys(Wd.harvested).forEach(k => {
+      if (Wd.day - Wd.harvested[k] < 2) out[k] = Wd.harvested[k];
+    });
+    Wd.harvested = out;
+    return out;
+  }
+
   Wd.serialize = function () {
     return {
       seed: Wd.seed, spawn: Wd.spawn, day: Wd.day, time: Wd.time,
-      harvested: Wd.harvested, discovered: Wd.discovered,
+      harvested: pruneHarvested(), disc: packDiscovered(),
       beacons: Wd.beacons,
-      pois: Wd.pois.map(p => ({ id: p.id, cleared: !!p.cleared, looted: !!p.looted, lootDay: p.lootDay || 0 }))
+      pois: Wd.pois.map(p => ({ id: p.id, cleared: !!p.cleared, looted: !!p.looted, lootDay: p.lootDay || 0, healed: !!p.healed }))
     };
   };
   Wd.load = function (d) {
@@ -600,7 +676,7 @@
     Wd.spawn = d.spawn || Wd.spawn;
     Wd.day = d.day || 1; Wd.time = d.time || 0.32;
     Wd.harvested = d.harvested || {};
-    Wd.discovered = d.discovered || {};
+    Wd.discovered = d.disc ? unpackDiscovered(d.disc) : (d.discovered || {});
     /* Kurulmuş kamp fenerlerini geri yükle */
     Wd.beacons = d.beacons || [];
     Wd.beacons.forEach((b, i) => {
@@ -611,7 +687,10 @@
     });
     (d.pois || []).forEach(sp => {
       const p = Wd.getPoi(sp.id);
-      if (p) { p.cleared = sp.cleared; p.looted = sp.looted; p.lootDay = sp.lootDay || 0; }
+      if (p) {
+        p.cleared = sp.cleared; p.looted = sp.looted; p.lootDay = sp.lootDay || 0; p.healed = !!sp.healed;
+        if (p.kind === 'oasis' && p.healed) p.name = { tr: 'İyileşen Vaha', en: 'The Healed Oasis' };
+      }
     });
     Wd._chunks.clear(); Wd._order.length = 0;
   };

@@ -177,11 +177,41 @@
       lead: ['G3', '-', 'B3', '-', 'D4', '-', 'B3', '-', 'C4', '-', 'A3', '-', 'G3', '-', '-', '-'],
       bass: ['G1', '-', '-', '-', 'C2', '-', '-', '-', 'D2', '-', '-', '-', 'G1', '-', '-', '-']
     },
+    /* Ağıt — kuruyan vaha ve Alpha'nın kubbesi: yavaş, çözülmeyen akor */
+    lament: {
+      bpm: 62, wave: 'triangle', vol: 0.10,
+      lead: ['D3', '-', '-', '-', 'F3', '-', '-', 'E3', '-', '-', 'A#2', '-', '-', '-', '-', '-'],
+      bass: ['D1', '-', '-', '-', '-', '-', '-', '-', 'A#0', '-', '-', '-', '-', '-', '-', '-']
+    },
+    /* Kuantum yansıması — kendi temanın tersten çalınmış hâli */
+    echo: {
+      bpm: 118, wave: 'square', vol: 0.12,
+      lead: ['-', 'G3', '-', 'A3', '-', 'C4', '-', 'E4', '-', 'D4', '-', 'C4', '-', 'A3', '-', '-'],
+      bass: ['A1', '-', '-', 'A1', '-', 'F1', '-', '-', 'C2', '-', '-', 'C2', '-', 'G1', '-', '-']
+    },
     /* Final */
     finale: {
       bpm: 92, wave: 'triangle', vol: 0.14,
       lead: ['C4', '-', 'E4', '-', 'G4', '-', 'C5', '-', 'B4', '-', 'G4', '-', 'E4', '-', 'C4', '-'],
       bass: ['C2', '-', '-', '-', 'A1', '-', '-', '-', 'F1', '-', '-', '-', 'G1', '-', '-', '-']
+    }
+  };
+
+  /* ------------------------------------------------------------------
+   * Uyarlanabilir gerilim — oyuncunun stres seviyesine göre müzik değişir
+   * 0.0 sakin · 0.5 tedirgin (tempo artar) · 1.0 panik (disonan alt katman)
+   * ---------------------------------------------------------------- */
+  A.tension = 0;
+  A._tensionBand = 0;
+
+  A.setTension = function (v) {
+    v = v < 0 ? 0 : v > 1 ? 1 : v;
+    A.tension = v;
+    const band = v < 0.34 ? 0 : v < 0.67 ? 1 : 2;
+    if (band !== A._tensionBand) {
+      A._tensionBand = band;
+      /* Tempo ve katman değiştiği için dizileyici yeniden kurulur */
+      if (A._seq) { const n = A._seq.name; A.stopMusic(); A.playMusic(n); }
     }
   };
 
@@ -192,7 +222,12 @@
     if (A._seq && A._seq.name === name) return;
     A.stopMusic();
     const tr = TRACKS[name]; if (!tr) return;
-    const stepMs = 60000 / tr.bpm / 2; // 8'lik nota
+
+    /* Gerilim arttıkça tempo yükselir ve ses biraz sertleşir */
+    const band = A._tensionBand;
+    const bpm = tr.bpm * (band === 0 ? 1 : band === 1 ? 1.10 : 1.22);
+    const vol = tr.vol * (band === 2 ? 1.15 : 1);
+    const stepMs = 60000 / bpm / 2; // 8'lik nota
     let i = 0, cycles = 0;
     const seq = { name, timer: null };
     seq.timer = setInterval(function () {
@@ -201,8 +236,15 @@
       if (step === 0) cycles++;
       const risePow = tr.rise ? Math.pow(2, Math.min(cycles - 1, 4) / 4) : 1; // gerilim yükselişi
       const l = tr.lead[step], b = tr.bass[step];
-      if (l && l !== '-') A.tone({ freq: hz(l) * risePow, dur: stepMs / 1000 * 0.9, vol: tr.vol, type: tr.wave, bus: 'music' });
-      if (b && b !== '-') A.tone({ freq: hz(b), dur: stepMs / 1000 * 1.4, vol: tr.vol * 0.8, type: 'triangle', bus: 'music' });
+      if (l && l !== '-') A.tone({ freq: hz(l) * risePow, dur: stepMs / 1000 * 0.9, vol, type: tr.wave, bus: 'music' });
+      if (b && b !== '-') A.tone({ freq: hz(b), dur: stepMs / 1000 * 1.4, vol: vol * 0.8, type: 'triangle', bus: 'music' });
+      /* Panik katmanı: tritona yakın, hafif detune bir gölge nota */
+      if (band === 2 && l && l !== '-' && (step % 4 === 0)) {
+        A.tone({ freq: hz(l) * 1.414, dur: stepMs / 1000 * 0.7, vol: vol * 0.28, type: 'sawtooth', bus: 'music' });
+      }
+      if (band >= 1 && b && b !== '-' && (step % 8 === 4)) {
+        A.tone({ freq: hz(b) * 0.5, dur: stepMs / 1000 * 2, vol: vol * 0.35, type: 'sine', bus: 'music' });
+      }
       i++;
     }, stepMs);
     A._seq = seq;

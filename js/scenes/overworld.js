@@ -18,7 +18,10 @@
       { id: 'leak', tx: sp.x + 3, ty: sp.y + 2, flag: 'leak_sealed',
         label: () => QW.t('tut_leak'), done: () => QW.t('tut_leak_done') },
       { id: 'console', tx: sp.x - 3, ty: sp.y + 2, flag: 'map_booted',
-        label: () => QW.t('tut_boot'), done: () => QW.t('tut_boot_done') }
+        label: () => QW.t('tut_boot'), done: () => QW.t('tut_boot_done') },
+      /* Küllerin arasındaki tanıdık nesne — eşya tabanlı irfan */
+      { id: 'ashes', tx: sp.x, ty: sp.y + 4, flag: 'camera_found', ashes: true,
+        label: () => QW.t('cam_look'), done: () => QW.t('cam_found') }
     ];
   }
 
@@ -107,6 +110,13 @@
 
       if (QW.Input.consume('a')) doInteract();
 
+      /* Müzik oyuncunun stresine, gecenin ve havanın ağırlığına göre uyarlanır */
+      let tension = P0.stress / P0.stressMax * 0.7;
+      if (P0.hp < P0.hpMax * 0.3) tension += 0.25;
+      if (QW.Weather.isSevere()) tension += 0.15;
+      if (Wd.isNight()) tension += 0.10;
+      QW.Audio.setTension(tension);
+
       hintT += dt;
       if (hintT > 4) { hintT = 0; OW.music(); }
       QW.HUD.update();
@@ -173,7 +183,15 @@
       if (QW.Game.flags[t.flag]) return;
       const x = t.tx * Wd.TILE - cam.x, y = t.ty * Wd.TILE - cam.y;
       if (x < -20 || y < -20 || x > P.Screen.w + 20 || y > P.Screen.h + 20) return;
-      if (t.id === 'leak') {
+      if (t.id === 'ashes') {
+        /* Kül yığını ve içinde parlayan lens */
+        ctx.fillStyle = '#2a2620'; ctx.fillRect(x + 1, y + 8, 14, 6);
+        ctx.fillStyle = '#3a352c'; ctx.fillRect(x + 3, y + 6, 10, 3);
+        ctx.fillStyle = '#1c1a16'; ctx.fillRect(x + 2, y + 13, 12, 2);
+        const gl = Math.floor(performance.now() / 500) % 2;
+        ctx.fillStyle = gl ? '#cdeaff' : '#8aa6bd';
+        ctx.fillRect(x + 7, y + 9, 2, 2);
+      } else if (t.id === 'leak') {
         ctx.fillStyle = '#3a404e'; ctx.fillRect(x + 2, y + 4, 12, 10);
         ctx.fillStyle = '#8a94a8'; ctx.fillRect(x + 2, y + 4, 12, 2);
         /* Kaçan oksijen */
@@ -242,9 +260,11 @@
     if (poi) {
       let label = QW.t('act_search');
       if (poi.kind === 'camp' || poi.kind === 'station') label = QW.t('act_talk');
-      else if (poi.kind === 'lair') label = QW.t('act_enter');
+      else if (poi.kind === 'lair' || poi.kind === 'archive') label = QW.t('act_enter');
       else if (poi.kind === 'wreck') label = QW.t('act_rest');
-      if (best > 0.5 || poi.kind === 'camp' || poi.kind === 'station' || poi.kind === 'lair') {
+      else if (poi.kind === 'oasis') label = poi.healed ? QW.t('oasis_drink') : QW.t('oasis_approach');
+      if (best > 0.5 || poi.kind === 'camp' || poi.kind === 'station' || poi.kind === 'lair'
+          || poi.kind === 'archive' || poi.kind === 'oasis') {
         interactTarget = { kind: 'poi', poi, label: label + ' - ' + QW.L(poi.name) };
       }
     }
@@ -270,6 +290,15 @@
   function doInteract() {
     if (!interactTarget) return;
     const it = interactTarget;
+
+    if (it.kind === 'tut' && it.tut.ashes) {
+      QW.Audio.sfx('pickup');
+      QW.Game.setFlag('camera_found', true);
+      QW.Inventory.add('analog_camera', 1, true);
+      QW.Game.codexUnlock('c_camera');
+      QW.Dialog.say([QW.t('cam_text1'), QW.t('cam_text2')], { name: QW.Items.name('analog_camera') });
+      return;
+    }
 
     if (it.kind === 'tut') {
       QW.Audio.sfx('craft');
@@ -339,6 +368,58 @@
         break;
       }
 
+      case 'archive': {
+        if (QW.Game.flags.alpha_resolved) {
+          QW.Dialog.say([QW.t('alpha_done')], { name: QW.L(poi.name) });
+          return;
+        }
+        QW.Audio.fadeMusicTo('lament');
+        QW.Dialog.say([QW.t('arch_outside')], {
+          name: QW.L(poi.name),
+          choices: [
+            { label: QW.t('arch_enter'), fn: () => enterArchive(poi) },
+            { label: QW.t('back') }
+          ]
+        });
+        break;
+      }
+
+      case 'oasis': {
+        if (poi.healed) {
+          QW.Dialog.say([QW.t('oasis_healed')], {
+            name: QW.L(poi.name),
+            choices: [
+              { label: QW.t('oasis_drink'), fn: () => {
+                  QW.Player.heal(30); QW.Player.addO2(25); QW.Player.addStress(-15);
+                  QW.Audio.sfx('heal');
+                  QW.HUD.toast(QW.t('oasis_drank'), 'good');
+                } },
+              { label: QW.t('p_rest'), fn: () => QW.Panels.show('rest') },
+              { label: QW.t('back') }
+            ]
+          });
+          return;
+        }
+        QW.Audio.fadeMusicTo('lament');
+        QW.Quests.start('q_oasis');
+        QW.Dialog.say([QW.t('oasis_desc')], {
+          name: QW.L(poi.name),
+          choices: [
+            { label: QW.t('oasis_approach'), fn: () => {
+                QW.Dialog.say([QW.t('levi_rise'), QW.t('levi_hurt')], {
+                  name: QW.L(QW.Enemies.get('boss_lost_leviathan').name),
+                  onDone: () => {
+                    const e = QW.Entities.spawnBossAt({ ...poi, boss: 'boss_lost_leviathan' });
+                    if (e) { e.poi = poi.id; QW.Scenes.push('battle', { entity: e, boss: true }); }
+                  }
+                });
+              } },
+            { label: QW.t('back') }
+          ]
+        });
+        break;
+      }
+
       case 'ruin': case 'pod': {
         if (poi.looted && Wd.day - poi.lootDay < 3) {
           QW.HUD.toast(QW.t('depleted'), 'info');
@@ -374,14 +455,70 @@
         choices.push({ label: QW.t('back') });
         QW.Game.codexUnlock('c_wreck');
         QW.Dialog.say([
-          QW.L({ tr: 'Argos\'un gövdesi hâlâ sıcak. Çekirdek yuvası boş bakıyor.',
-                 en: 'The hull of the Argos is still warm. The core cradle stares back, empty.' }),
+          QW.L({ tr: 'Göktay\'ın gövdesi hâlâ sıcak. Çekirdek yuvası boş bakıyor.',
+                 en: 'The hull of the Göktay is still warm. The core cradle stares back, empty.' }),
           frags >= 5 ? QW.t('core_ready') : QW.t('core_need', { n: 5 - frags })
         ], { name: QW.L(poi.name), choices });
         break;
       }
     }
   }
+
+  /* Çöken Arşiv: sessiz hologram, ardından Alpha ile yüzleşme.
+     Pasifist çözüm craft edilmiş devreler ister — şiddet tek yol değildir. */
+  const PACIFY_COST = { esp32: 1, capacitor: 1, ti_wire: 1 };
+
+  function enterArchive(poi) {
+    QW.Game.setFlag('archive_entered', true);
+    QW.Quests.start('q_archive');
+    QW.Scenes.push('hologram', {
+      onDone: () => {
+        const canPacify = QW.Inventory.hasAll(PACIFY_COST);
+        const costList = Object.keys(PACIFY_COST)
+          .map(k => QW.Items.name(k) + ' ' + QW.Inventory.count(k) + '/' + PACIFY_COST[k]).join(', ');
+        QW.Audio.fadeMusicTo('lament');
+        QW.Dialog.say([QW.t('alpha_wake')], {
+          name: QW.L(QW.Enemies.get('boss_memory_alpha').name),
+          sprite: null,
+          choices: [
+            { label: QW.t('alpha_pacify'), dis: !canPacify,
+              fn: () => pacifyAlpha(poi) },
+            { label: QW.t('alpha_fight'), fn: () => {
+                const e = QW.Entities.spawnBossAt({ ...poi, boss: 'boss_memory_alpha' });
+                if (e) { e.poi = poi.id; e.alpha = true; QW.Scenes.push('battle', { entity: e, boss: true }); }
+              } }
+          ].concat(canPacify ? [] : [{ label: QW.t('alpha_need', { list: costList }), dis: true }])
+        });
+      }
+    });
+  }
+
+  function pacifyAlpha(poi) {
+    QW.Inventory.consumeAll(PACIFY_COST);
+    QW.Audio.stopMusic();
+    QW.Audio.sfx('scan');
+    QW.Dialog.say([QW.t('alpha_pac_1'), QW.t('alpha_pac_2'), QW.t('alpha_end1'), QW.t('alpha_end2')], {
+      name: QW.L(QW.Enemies.get('boss_memory_alpha').name),
+      onDone: () => {
+        QW.Game.setFlag('alpha_pacified', true);
+        OW.resolveAlpha(poi);
+      }
+    });
+  }
+
+  /* Hem savaş hem pasifist yol aynı sessiz sona çıkar */
+  OW.resolveAlpha = function (poi) {
+    if (QW.Game.flags.alpha_resolved) return;
+    QW.Game.setFlag('alpha_resolved', true);
+    const p = QW.World.getPoi(poi.id || 'archive');
+    if (p) p.cleared = true;
+    QW.Inventory.add('memory_disk', 1, true);
+    QW.Inventory.add('data_crystal', 3, true);
+    QW.Game.codexUnlock('c_alpha');
+    QW.Audio.sfx('fragment');
+    QW.HUD.toast(QW.t('alpha_gift'), 'info');
+    QW.Quests.start('q_twist');
+  };
 
   function talkTo(npcId, poi) {
     const def = QW.NPCs.get(npcId);

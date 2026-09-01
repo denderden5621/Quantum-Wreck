@@ -18,7 +18,7 @@
   const BOOTS  = ['boots_cushion', 'boots_grip'];
 
   const cfg = {
-    name: 'ARGOS-7',
+    name: 'GÖKTAY-7',
     skin: SKIN[1], hair: HAIR[1],
     shirtItem: SHIRTS[0], shirtColor: CLOTH[0],
     bootItem: BOOTS[0], bootColor: BOOTC[0],
@@ -92,7 +92,7 @@
     const inp = elm('input');
     inp.type = 'text'; inp.value = cfg.name; inp.maxLength = 12;
     inp.style.cssText = 'flex:1;min-width:0;background:#121a30;border:2px solid #26365c;color:#dff6ff;font-family:inherit;font-size:1em;padding:8px;min-height:44px;';
-    inp.addEventListener('input', () => { cfg.name = inp.value.toUpperCase().slice(0, 12) || 'ARGOS-7'; });
+    inp.addEventListener('input', () => { cfg.name = inp.value.toUpperCase().slice(0, 12) || 'GÖKTAY-7'; });
     nameRow.appendChild(inp);
     body.appendChild(nameRow);
 

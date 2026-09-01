@@ -39,7 +39,7 @@
     G.seed = (Math.random() * 0xffffffff) >>> 0;
     G.flags = {}; G.codex = {};
     G.stats = { kills: 0, crafted: 0, bosses: 0 };
-    G.atStationBench = false;
+    G.atStationBench = false; G._finaleRunning = false;
 
     QW.World.generate(G.seed);
     QW.Player.reset();
@@ -121,23 +121,89 @@
   };
 
   /* ------------------------------------------------------------------
-   * FİNAL
+   * BÜYÜK TERS KÖŞE — gezegen aslında Dünya'nın çok uzak geleceğidir
    * ---------------------------------------------------------------- */
-  G.ending = function () {
+  G.revealTwist = function () {
+    if (G.flags.twist_revealed) {
+      QW.Dialog.say([QW.t('twist_3')], { name: QW.t('twist_t') });
+      return;
+    }
+    G.setFlag('twist_revealed', true);
+    G.codexUnlock('c_truth');
+    QW.Audio.stopMusic();
+    QW.Audio.sfx('glitch');
+    QW.HUD.glitch(true);
+    setTimeout(() => QW.HUD.glitch(false), 1200);
+    QW.HUD.toast(QW.t('twist_toast'), 'info');
+    QW.Dialog.say([QW.t('twist_1'), QW.t('twist_2'), QW.t('twist_3'), QW.t('twist_4')], {
+      name: QW.t('twist_t'),
+      onDone: () => {
+        QW.Audio.playMusic('lament');
+        QW.Quests.evaluateAll();
+      }
+    });
+  };
+
+  /* ------------------------------------------------------------------
+   * FİNAL — önce kendi yansımanla yüzleşirsin, sonra seçim
+   * ---------------------------------------------------------------- */
+  G.startFinale = function () {
+    if (G._finaleRunning) return;
+    if (G.flags.echo_beaten) { G.finalChoice(); return; }
+    G._finaleRunning = true;
+    const def = QW.Enemies.get('boss_quantum_echo');
+    QW.Quests.start('q_echo');
+    QW.Audio.fadeMusicTo('echo');
+    QW.Dialog.say([QW.t('echo_meet1'), QW.t('echo_meet2')], {
+      name: QW.L(def.name),
+      onDone: () => {
+        G._finaleRunning = false;
+        QW.Scenes.push('battle', {
+          entity: { type: 'enemy', def, x: QW.Player.x, y: QW.Player.y,
+                    hp: def.hp, hpMax: def.hp, boss: true, echo: true },
+          boss: true
+        });
+      }
+    });
+  };
+
+  /* Yansıma yenildikten sonra: iki yol */
+  G.finalChoice = function () {
+    QW.Audio.fadeMusicTo('finale');
+    QW.Dialog.say([QW.t('echo_end'), QW.t('fin_text')], {
+      name: QW.t('fin_title'),
+      choices: [
+        { label: QW.t('fin_erase'), fn: () => G.ending('erase') },
+        { label: QW.t('fin_bury'), fn: () => G.ending('bury') }
+      ]
+    });
+  };
+
+  G.ending = function (choice) {
+    choice = choice || 'erase';
     QW.HUD.show(false);
     QW.Input.showTouch(false);
     QW.Audio.playMusic('finale');
-    QW.HUD.flash(900);
+    if (choice === 'erase') QW.HUD.flash(900);
     const c = document.getElementById('cinema');
     const title = document.getElementById('cinema-title');
     const text = document.getElementById('cinema-text');
     const acts = document.getElementById('cinema-actions');
     c.classList.remove('hidden');
     c.style.background = '#05070d';
-    title.textContent = QW.t('end_title');
-    const bosses = QW.Enemies.bosses().filter(b => G.flags['boss_' + b]).length;
-    text.textContent = QW.t('end_text') + '\n\n' +
-      QW.t('end_stats', { d: QW.World.day, l: QW.Player.level, b: bosses });
+    const all = QW.Enemies.bosses();
+    const bosses = all.filter(b => G.flags['boss_' + b]).length;
+    if (choice === 'erase') {
+      title.textContent = QW.t('fin_erase_t');
+      text.textContent = QW.t('fin_erase_1') + '\n\n' + QW.t('fin_erase_2') + '\n\n' + QW.t('fin_erase_3');
+    } else {
+      title.textContent = QW.t('fin_bury_t');
+      text.textContent = QW.t('fin_bury_1') + '\n\n' + QW.t('fin_bury_2') + '\n\n' + QW.t('fin_bury_3');
+    }
+    text.textContent += '\n\n' + QW.t('fin_epitaph', {
+      d: QW.World.day, l: QW.Player.level, b: bosses + '/' + all.length,
+      c: QW.t(choice === 'erase' ? 'fin_c_erase' : 'fin_c_bury')
+    });
     acts.innerHTML = '';
     const b = document.createElement('button');
     b.className = 'btn pri';
@@ -169,7 +235,7 @@
       else if (which === 'inv') QW.Panels.show('inventory');
     });
 
-    QW.bus.on('game_end', () => G.ending());
+    QW.bus.on('game_end', () => G.startFinale());
 
     QW.bus.on('newday', () => {
       QW.NPCState.restock();

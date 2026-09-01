@@ -80,7 +80,7 @@
     weak: 'optics', sprite: { s: 'drone', c: '#7aa2ff', c2: '#26386e' },
     moves: [{ id: 'laser', w: 3, dmg: 1.2 }, { id: 'shieldup', w: 1, dmg: 0, kind: 'shield' }, { id: 'ram', w: 2, dmg: 1.1 }],
     drop: [{ id: 'scrap', n: 3, p: 0.9 }, { id: 'pcb', n: 1, p: 0.3 }, { id: 'power_cell', n: 1, p: 0.35 }],
-    desc: { tr: 'Argos\'un kayıp keşif dronu. Artık dost tanımıyor.', en: "A lost survey drone from the Argos. It no longer recognises friends." }
+    desc: { tr: 'Göktay\'ın kayıp keşif dronu. Artık dost tanımıyor.', en: "A lost survey drone from the Göktay. It no longer recognises friends." }
   });
 
   en('mire_stalker', {
@@ -207,14 +207,68 @@
     intro: { tr: 'Rüzgâr birden duruyor. Gölge büyüyor.', en: 'The wind stops all at once. The shadow grows.' }
   });
 
+  /* --------------------- ANLATI HÂKİMLERİ --------------------- */
+  en('boss_memory_alpha', {
+    boss: true, story: true,
+    name: { tr: 'Hafıza Bekçisi Alpha', en: 'Memory Keeper Alpha' },
+    biome: ['plains'], lvl: 9, hp: 280, atk: 22, def: 11, spd: 7, xp: 170, ec: 140,
+    weak: 'core', vuln: { shock: 1.4 },
+    sprite: { s: 'alpha', c: '#7ec8e0', c2: '#1d4a5e' },
+    moves: [
+      { id: 'lullaby', w: 3, dmg: 0.9, kind: 'stress' },
+      { id: 'static', w: 3, dmg: 1.1, kind: 'blind' },
+      { id: 'recall', w: 2, dmg: 0, kind: 'defend' },
+      { id: 'plea', w: 2, dmg: 1.3, kind: 'heavy' }
+    ],
+    drop: [{ id: 'memory_disk', n: 1, p: 1 }, { id: 'data_crystal', n: 3, p: 1 }, { id: 'quartz', n: 4, p: 1 }],
+    desc: { tr: 'Bir gezegenin bütün hafızasını korumakla görevlendirilmiş, radyasyon yüzünden verilerini kaybettikçe acı çeken bir yapay zekâ.',
+            en: 'An AI charged with keeping a planet’s entire memory, in pain as radiation erases its data piece by piece.' },
+    intro: { tr: 'Ninni bozuluyor ve bir çığlığa dönüşüyor.', en: 'The lullaby breaks and turns into a scream.' }
+  });
+
+  en('boss_lost_leviathan', {
+    boss: true, story: true,
+    name: { tr: 'Kayıp Leviathan', en: 'The Lost Leviathan' },
+    biome: ['swamp'], lvl: 8, hp: 240, atk: 20, def: 9, spd: 5, xp: 150, ec: 120,
+    weak: 'joint', resist: { acid: 1 }, vuln: { cold: 1.4 },
+    sprite: { s: 'levi2', c: '#7fae7a', c2: '#2a4a2a' },
+    moves: [
+      { id: 'thrash', w: 3, dmg: 1.0 },
+      { id: 'writhe', w: 3, dmg: 0.6, kind: 'evade' },
+      { id: 'acid_cry', w: 2, dmg: 1.1, kind: 'acid' },
+      { id: 'collapse', w: 2, dmg: 0, kind: 'defend' }
+    ],
+    drop: [{ id: 'acid_sac', n: 5, p: 1 }, { id: 'bio_fiber', n: 6, p: 1 }, { id: 'data_crystal', n: 1, p: 0.6 }],
+    desc: { tr: 'Vahayı korumakla görevli kadim bir muhafız. Çekirdek parçası sırtına saplandığından beri mutasyona uğramış ve acı içinde.',
+            en: 'An ancient guardian of the oasis, mutated and in agony since a core shard lodged in its back.' },
+    intro: { tr: 'Sana saldırmak istemiyor. Sadece acıyı durdurmak istiyor.',
+             en: 'It does not want to attack you. It only wants the pain to stop.' }
+  });
+
+  en('boss_quantum_echo', {
+    boss: true, story: true, mirror: true,
+    name: { tr: 'Kuantum Yansıması', en: 'The Quantum Echo' },
+    biome: ['wreck'], lvl: 16, hp: 460, atk: 30, def: 15, spd: 12, xp: 400, ec: 300,
+    weak: 'core',
+    sprite: { s: 'echo', c: '#a58bff', c2: '#2a1a5a' },
+    moves: [{ id: 'mirror', w: 1, dmg: 1.0 }],
+    drop: [],
+    desc: { tr: 'Geminin kuantum yansımalarından doğmuş bir sen. Ne yaparsan onu yapar; hatalarını ezberler.',
+            en: 'A you, born of the ship’s quantum reflections. It does whatever you do, and memorises your mistakes.' },
+    intro: { tr: 'Bu bir savaş değil. Kendi hamlelerinle oynanan bir satranç.',
+             en: 'This is not a battle. It is chess played against your own moves.' }
+  });
+
   /* Hâkim ödülleri — hangi biyomun parçası düştüğünü işaretler */
   const BOSSES = Object.keys(E).filter(k => E[k].boss);
+  const BIOME_BOSSES = Object.keys(E).filter(k => E[k].boss && E[k].biomeBoss);
 
   QW.Enemies = {
     db: E,
     get: id => E[id] || null,
     all: () => Object.keys(E),
     bosses: () => BOSSES.slice(),
+    biomeBosses: () => BIOME_BOSSES.slice(),
     bossOf: biome => BOSSES.map(b => E[b]).find(b => b.biomeBoss === biome) || null,
     /* Bir biyom + gece/gündüz + seviye için uygun düşman havuzu */
     pool: function (biome, isNight, lvl) {

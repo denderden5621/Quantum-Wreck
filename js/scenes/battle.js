@@ -8,7 +8,7 @@
   const P = QW.Pixel, U = QW.Utils;
 
   let el = {}, menu = 'root', anim = 0, shakeT = 0, entity = null;
-  let bgStars = [], resolved = false, endTimer = 0;
+  let bgStars = [], resolved = false, endTimer = 0, storyOutcome = null;
 
   const tap = QW.Utils.tap;
 
@@ -27,7 +27,7 @@
   const Battle = {
     enter(data) {
       entity = data.entity;
-      resolved = false; endTimer = 0; menu = 'root'; anim = 0;
+      resolved = false; endTimer = 0; menu = 'root'; anim = 0; storyOutcome = null;
       QW.HUD.show(false);
       QW.Input.showTouch(false);
       el.ui = document.getElementById('combat-ui');
@@ -137,6 +137,8 @@
           const poi = QW.World.getPoi(entity.poi);
           if (poi) poi.cleared = true;
         }
+        /* Anlatı hâkimlerinin kendi sessiz sonları var */
+        storyOutcome = s.e.meta.id;
       } else if (res.outcome === 'lose') {
         pushLog(QW.t('cb_lose'));
         QW.Audio.sfx('death');
@@ -149,14 +151,44 @@
     close() {
       const s = QW.Combat.s;
       const outcome = s ? s.over : 'fled';
+      const story = outcome === 'win' ? storyOutcome : null;
       if (outcome !== 'lose') {
         /* Yenilen ya da kaçılan düşman haritadan silinir */
         QW.Entities.list = QW.Entities.list.filter(e => e !== entity);
         QW.Player.invuln = 1.4;
         QW.Scenes.pop({ outcome });
+        if (story) Battle.epilogue(story);
       } else {
         QW.Scenes.pop({ outcome });
         QW.Game.playerDied();
+      }
+    },
+
+    /* Anlatı hâkimleri için savaş sonrası sahne */
+    epilogue(bossId) {
+      if (bossId === 'boss_memory_alpha') {
+        QW.Audio.stopMusic();
+        QW.Dialog.say([QW.t('alpha_end1'), QW.t('alpha_end2')], {
+          name: QW.L(QW.Enemies.get(bossId).name),
+          onDone: () => QW.OverworldScene.resolveAlpha({ id: 'archive' })
+        });
+      } else if (bossId === 'boss_lost_leviathan') {
+        const poi = QW.World.getPoi('oasis');
+        if (poi) {
+          poi.healed = true;
+          poi.name = { tr: 'İyileşen Vaha', en: 'The Healed Oasis' };
+          QW.World.invalidateArea(poi.x, poi.y, 5);
+        }
+        QW.Audio.sfx('heal');
+        QW.Game.codexUnlock('c_oasis');
+        QW.Dialog.say([QW.t('levi_end1'), QW.t('levi_end2')], {
+          name: QW.L(QW.World.getPoi('oasis') ? QW.World.getPoi('oasis').name : ''),
+          onDone: () => QW.HUD.toast(QW.t('oasis_healed'), 'good')
+        });
+      } else if (bossId === 'boss_quantum_echo') {
+        QW.Game.setFlag('echo_beaten', true);
+        QW.Game.codexUnlock('c_echo');
+        setTimeout(() => QW.Game.finalChoice(), 400);
       }
     },
 

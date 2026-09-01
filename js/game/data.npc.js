@@ -168,7 +168,7 @@
       { give: { data_crystal: 4 }, get: { id: 'comic_archive', n: 1 },
         label: { tr: 'Kristal x4 → Dijital çizgi roman arşivi', en: 'Crystal x4 → Digital comic archive' } },
       { give: { data_crystal: 3, quartz: 2 }, get: { id: 'ship_log', n: 1 }, once: true,
-        label: { tr: 'Kristal → Argos\'un kayıp seyir kaydı', en: "Crystal → The Argos' lost flight log" } }
+        label: { tr: 'Kristal → Göktay\'ın kayıp seyir kaydı', en: "Crystal → The Göktay's lost flight log" } }
     ],
     shop: [
       { id: 'spore_tea', price: 30, stock: 6 },

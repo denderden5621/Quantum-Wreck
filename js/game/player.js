@@ -8,7 +8,7 @@
   const U = QW.Utils, Wd = QW.World;
 
   const Pl = QW.Player = {
-    name: 'ARGOS-7',
+    name: 'GÖKTAY-7',
     x: 0, y: 0, dir: 'down', frame: 0, moving: false,
     level: 1, xp: 0, xpNext: 40,
     hp: 100, hpMax: 100,
