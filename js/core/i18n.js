@@ -279,10 +279,47 @@
     cb_burn:      { tr: '{name} yanıyor ({n}).', en: '{name} burns ({n}).' },
     cb_turn:      { tr: 'Tur {n}',              en: 'Turn {n}' },
 
+    /* --- kask kaydı / adaptasyon --- */
+    log_title:    { tr: 'KASK KAYDI', en: 'HELMET LOG' },
+    log_updated:  { tr: 'KASK KAYDI: {name} hakkında yeni bilgi', en: 'HELMET LOG: new data on {name}' },
+    log_adapt:    { tr: '{name} karşısında adaptasyon: +%{n} hasar', en: 'Adaptation vs {name}: +{n}% damage' },
+    log_weak:     { tr: '{name} zayıf noktası artık radarsız görünüyor: {w}',
+                    en: 'The weak point of {name} is now visible without radar: {w}' },
+    log_none:     { tr: 'Henüz saha kaydı yok. Her karşılaşma ve her ölüm buraya yazılır.',
+                    en: 'No field notes yet. Every encounter and every death is written here.' },
+    log_seen:     { tr: 'Karşılaşma: {n}', en: 'Encounters: {n}' },
+    log_died:     { tr: 'Bu yaratığa yenilme: {n}', en: 'Defeats by this creature: {n}' },
+    log_deaths:   { tr: 'Toplam ölüm: {n}', en: 'Total deaths: {n}' },
+    log_pride:    { tr: 'Ölüm sayın öğrenme sayındır. Her kayıp kaska bir satır yazar.',
+                    en: 'Your death count is your learning count. Every loss writes a line in the helmet.' },
+    p_log:        { tr: 'SAHA KAYDI', en: 'FIELD LOG' },
+
+    /* --- yardım modu --- */
+    set_assist:   { tr: 'Yardım modu',            en: 'Assist mode' },
+    assist_desc:  { tr: 'Gelen hasar yarıya iner, oksijen yavaş tükenir, ölünce malzeme kaybetmezsin. İstediğin an aç/kapat — utanılacak bir şey değil.',
+                    en: 'Incoming damage halved, oxygen drains slower, no material loss on death. Toggle any time — there is no shame in it.' },
+    assist_on:    { tr: 'Yardım modu açık.',      en: 'Assist mode on.' },
+    assist_off:   { tr: 'Yardım modu kapalı.',    en: 'Assist mode off.' },
+
+    /* --- sinerjiler --- */
+    syn_active:   { tr: 'Sinerji: {name}',       en: 'Synergy: {name}' },
+    syn_opening:  { tr: 'Rover’ın kütlesi açılış darbesini taşıyor!', en: 'The rover’s mass carries an opening strike!' },
+    syn_banked:   { tr: 'Biriken yük: {n} tur',  en: 'Banked charge: {n} turns' },
+    syn_strip:    { tr: 'Parazit kalkanı söktü ({n}).', en: 'Jamming stripped the shield ({n}).' },
+    syn_brittle:  { tr: 'Soğutulmuş zırh asit altında çatladı!', en: 'The chilled armour cracks under the acid!' },
+    p_syn:        { tr: 'SİNERJİLER',            en: 'SYNERGIES' },
+    syn_none:     { tr: 'Aktif sinerji yok. İki cihazı aynı anda taşımak, tek tek toplamlarından güçlü olabilir.',
+                    en: 'No active synergies. Carrying two devices at once can beat the sum of their parts.' },
+    syn_close:    { tr: 'Bir adım kaldı: {list}', en: 'One step away: {list}' },
+    syn_near:     { tr: 'BİR ADIM KALDI',        en: 'ONE STEP AWAY' },
+    syn_on:       { tr: 'AKTİF',                 en: 'ACTIVE' },
+
     /* --- ölüm --- */
     death_title:  { tr: 'SİNYAL KESİLDİ',        en: 'SIGNAL LOST' },
-    death_text:   { tr: 'Kask sistemi seni enkazda yeniden başlattı.\nMalzemelerin bir kısmı kayboldu.',
-                    en: 'Your suit rebooted you back at the wreck.\nSome of your materials were lost.' },
+    death_text:   { tr: 'Kask sistemi seni enkazda yeniden başlattı.\nMalzemelerin bir kısmı kayboldu — ama kayıt tutuldu.',
+                    en: 'Your suit rebooted you back at the wreck.\nSome materials were lost — but the log was kept.' },
+    death_text_a: { tr: 'Kask sistemi seni enkazda yeniden başlattı.\nYardım modu açık: malzemen duruyor.',
+                    en: 'Your suit rebooted you back at the wreck.\nAssist mode is on: your materials are intact.' },
     death_ok:     { tr: 'Enkazda uyan',          en: 'Wake at the wreck' },
 
     /* --- final --- */

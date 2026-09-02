@@ -158,6 +158,7 @@
     }
     if (u.look === 'camera') {
       const after = QW.Game.flags.twist_revealed;
+      QW.Audio.motif(after ? 'grief' : 'home');
       QW.Dialog.say(after ? [QW.t('cam_after1'), QW.t('cam_after2')]
                           : [QW.t('cam_text1'), QW.t('cam_text2')],
         { name: QW.Items.name(id) });

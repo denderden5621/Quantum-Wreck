@@ -38,8 +38,23 @@
       mirror: !!def.mirror, lastAction: null, learned: []
     };
     /* Yansımanın kendi teması var: senin melodinin tersten çalınmış hâli */
+    /* Karşılaşma kask kaydına işlenir; biriken bilgi hasara dönüşür */
+    QW.Game.noteEncounter(def.id);
+    /* Kask kaydı zayıf noktanın YERİNİ öğretir (kısmi çarpan), ama onu
+       savaşta açığa çıkarmak hâlâ radarın işidir — bilgi aracın yerini almaz. */
+    if (QW.Game.knowsWeakPoint(def.id)) {
+      CB.s.e.weakFound = true;
+      CB.s.e.known = true;
+    }
+    /* Kombinasyon ekonomisi: taşıdığın cihazlar birbirini çarpar */
+    const syns = QW.Synergies.applyAll(CB.s);
     QW.Audio.playMusic(def.mirror ? 'echo' : boss ? 'boss' : 'battle');
     CB.log(QW.t('cb_start', { name: CB.s.e.name }));
+    syns.forEach(x => CB.log('◆ ' + QW.t('syn_active', { name: QW.L(x.name) })));
+    if (CB.s.syn.openingStrike) {
+      CB.log(QW.t('syn_opening'));
+      CB.hit(CB.s, CB.s.syn.openingStrike, 'shock', false);
+    }
     if (boss && def.intro) CB.log(QW.L(def.intro));
     return CB.s;
   };
@@ -80,6 +95,8 @@
           s.e.stun = Math.max(s.e.stun, 1);
           CB.log(QW.t('cb_stun', { name: s.e.name }));
         } else CB.log(QW.L({ tr: 'Dron gürültü yaptı ama hedef aldırmadı.', en: 'The drone made noise; the target ignored it.' }));
+        /* Hedef İşaretleme: dron radar yankısını taşır */
+        if (s.syn.distractExposes) { s.e.weakFound = true; s.e.exposed = 99; CB.log(QW.t('cb_weak')); }
       }
     },
     {
@@ -88,7 +105,15 @@
       desc: { tr: 'Manyetik bariyeri patlat · yüksek şok hasarı, sana da yansır',
               en: 'Detonate the barrier · heavy shock damage, some rebounds on you' },
       run(s) {
-        const dmg = CB.hit(s, 2.1, 'shock', true);
+        /* Yük Biriktirme: beklenen her tur patlamayı büyütür */
+        let mult = 2.1;
+        if (s.syn.overloadStack) {
+          const banked = Math.min(4, s.syn.banked || 0);
+          mult *= Math.pow(1.25, banked);
+          if (banked) CB.log(QW.t('syn_banked', { n: banked }));
+          s.syn.banked = 0;
+        }
+        const dmg = CB.hit(s, mult, 'shock', true);
         const self = Math.round(dmg * 0.18);
         QW.Player.damage(self, 'shock');
         QW.Audio.sfx('explode');
@@ -102,6 +127,11 @@
               en: 'Near-field jamming · lowers the enemy\'s accuracy' },
       run(s) {
         s.e.accuracy = Math.max(0.4, s.e.accuracy - 0.3);
+        /* Devre Kısası: parazit kalkanı da söker */
+        if (s.syn.jamStripsShield && s.e.shield > 0) {
+          CB.log(QW.t('syn_strip', { n: s.e.shield }));
+          s.e.shield = 0;
+        }
         QW.Audio.sfx('glitch');
         CB.log(QW.L({ tr: 'Parazit yayını açıldı. Hedef şaşırıyor.', en: 'Jamming field up. The target falters.' }));
       }
@@ -120,6 +150,7 @@
         QW.Inventory.remove('coolant', 1, true);
         CB.hit(s, 1.5, 'cold', false);
         s.e.def = Math.max(0, s.e.def - 3);
+        s.syn.chilled = true;   // sonraki asit için zemin hazırlanır
       }
     },
     {
@@ -128,9 +159,12 @@
       desc: { tr: 'Zırhı aşındırır · sürekli hasar', en: 'Corrodes armour · damage over time' },
       run(s) {
         QW.Inventory.remove('acid_sac', 1, true);
-        CB.hit(s, 1.1, 'acid', false);
-        s.e.dot = 5; s.e.dotT = 3;
-        s.e.def = Math.max(0, s.e.def - 2);
+        /* Kırılgan Aşınma: soğutulmuş hedefte asit iki kat işler */
+        const brittle = s.syn.brittle && s.syn.chilled;
+        CB.hit(s, brittle ? 1.6 : 1.1, 'acid', false);
+        s.e.dot = brittle ? 10 : 5; s.e.dotT = 3;
+        s.e.def = Math.max(0, s.e.def - (brittle ? 4 : 2));
+        if (brittle) CB.log(QW.t('syn_brittle'));
       }
     },
     {
@@ -193,6 +227,8 @@
     }
 
     let dmg = base * (0.85 + Math.random() * 0.3);
+    /* Bu yaratığa karşı biriken adaptasyon */
+    dmg *= 1 + QW.Game.adaptation(s.e.meta.id);
     if (!ignoreDef) dmg -= s.e.def * 0.55;
     if (s.e.defending > 0) dmg *= 0.5;
 
@@ -201,8 +237,9 @@
     if (element && m.resist && m.resist[element]) dmg *= (1 - m.resist[element]);
     if (element && m.vuln && m.vuln[element]) dmg *= m.vuln[element];
 
-    /* Radarla açığa çıkarılan zayıf nokta */
-    if (s.e.exposed > 0) { dmg *= 1.6; CB.log(QW.t('cb_weak')); }
+    /* Zayıf nokta: radar tam açar, kask kaydı yalnızca yerini bildirir */
+    if (s.e.exposed > 0) { dmg *= (s.syn && s.syn.weakMult) || 1.6; CB.log(QW.t('cb_weak')); }
+    else if (s.e.known) { dmg *= 1.25; }
 
     /* Kritik */
     let crit = '';
@@ -291,6 +328,7 @@
 
   CB.endPlayerTurn = function () {
     const s = CB.s;
+    if (s.syn && s.syn.overloadStack) s.syn.banked = (s.syn.banked || 0) + 1;
     if (s.e.hp <= 0) { s.phase = 'over'; s.over = 'win'; return; }
     s.phase = 'enemy';
   };

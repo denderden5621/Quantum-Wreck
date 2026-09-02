@@ -85,8 +85,14 @@
     setTimeout(() => H.el.flash.classList.remove('on'), ms || 120);
   };
   H.glitch = function (on) { H.el.glitch.classList.toggle('on', !!on); };
+  /* Animasyonu yeniden tetiklemek zorunlu reflow gerektirir; bataklıkta
+     saniyede bir hasar alındığı için çağrı hızı sınırlanır. */
+  let lastShake = 0;
   H.shake = function () {
     if (!QW.Save.settings.shake) return;
+    const now = performance.now();
+    if (now - lastShake < 350) return;
+    lastShake = now;
     H.el.stage.classList.remove('shake');
     void H.el.stage.offsetWidth;
     H.el.stage.classList.add('shake');

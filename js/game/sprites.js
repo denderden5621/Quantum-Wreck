@@ -152,27 +152,29 @@
       'd..d..d..d',
       '.d......d.'
     ],
+    /* Radyasyon Çakalı: alçak, uzun ve sivri — üçgen kafa, hız hissi */
     jackal: [
-      '..d....d..',
-      '.dad..dad.',
-      '.daaddaad.',
-      'ddaeaaeadd',
-      'dbaaaaaabd',
-      '.daaaaaad.',
-      '.dbbbbbbd.',
-      '.d.d..d.d.',
-      '..d....d..'
+      '.........d',
+      '.dd....ddd',
+      'daaddddaad',
+      'daaaaaaeed',
+      '.daaaaaadd',
+      '..dbbbbd..',
+      '..d.d.d...',
+      '.d..d..d..',
+      '............'
     ],
+    /* Spor Yürüyücüsü: geniş şapka + ince gövde (mantar silueti) */
     walker: [
-      '...dddd...',
-      '..dbaabd..',
-      '.dbaaaabd.',
-      'dbaaeeaabd',
+      '.dddddddd.',
       'dbaaaaaabd',
+      'daaeaaeaad',
       '.dbaaaabd.',
-      '..dbaabd..',
-      '..d.aa.d..',
-      '..d.dd.d..'
+      '..dd..dd..',
+      '....aa....',
+      '....aa....',
+      '...daad...',
+      '..dd..dd..'
     ],
     lurker: [
       '.d......d.',
@@ -185,16 +187,17 @@
       '..d.dd.d..',
       '...d..d...'
     ],
+    /* Asit Sülüğü: dikey, boğumlu boru — yatay gövdelerden ayrışır */
     leech: [
-      '....dd....',
+      '...deed...',
       '...daad...',
       '..dbaabd..',
-      '.dbaeeabd.',
-      'dbaaaaaabd',
-      'dbaaaaaabd',
-      '.dbaaaabd.',
+      '...daad...',
       '..dbaabd..',
-      '...dddd...'
+      '...daad...',
+      '..dbaabd..',
+      '...daad...',
+      '...dbbd...'
     ],
     shrike: [
       'd........d',
@@ -218,27 +221,30 @@
       '..d.dd.d..',
       '.d......d.'
     ],
+    /* Batak Avcısı: uzun, kambur, öne uzanan ön kollar — sürüngenden
+       tamamen farklı bir siluet (dar üst, geniş taban, asimetrik) */
     stalker: [
-      '..d....d..',
-      '.dad..dad.',
-      '.daaddaad.',
-      'ddaeaaeadd',
-      'dbaaaaaabd',
-      'dbaaaaaabd',
+      '...dd.....',
+      '..deed....',
+      '..daad....',
+      '.ddaadd...',
+      'daaaaaad..',
+      'daaaaaaad.',
       '.dbaaaabd.',
-      'd.d.dd.d.d',
-      '.d......d.'
+      '.d.daad.d.',
+      'd...dd...d'
     ],
+    /* Kırık Golem: kare omuzlar, ağır ve simetrik — "sağlam/güçlü" */
     golem: [
-      '..dddddd..',
-      '.dbaaaabd.',
+      'dd......dd',
+      'dbdddddddb',
       'dbaaeeaabd',
       'dbaaaaaabd',
-      'daaaaaaaad',
-      '.daaaaaad.',
-      '.dbaaaabd.',
-      '.dd.dd.dd.',
-      '.d..dd..d.'
+      'dbaaaaaabd',
+      'ddbaaaabdd',
+      '..daaaad..',
+      '..dd..dd..',
+      '.dd....dd.'
     ],
     moth: [
       'd..dddd..d',
@@ -262,80 +268,83 @@
       '...d..d...',
       '....dd....'
     ],
-    /* ------------------------- BOSSLAR (16 geniş) ------------------------- */
+    /* Buz Solucanı: dikey boğumlu gövde — yatay bosslardan ayrışır */
     worm: [
-      '......dddddd....',
-      '....ddbaaaabdd..',
-      '...dbaaaaaaaabd.',
-      '..dbaaeaaaaeaabd',
-      '..daaaaaaaaaaaad',
-      '..dbaaaaaaaaaabd',
-      '...dbaaaaaaaabd.',
-      '.d..ddbaaaabdd..',
-      'd.d...dddddd....',
-      '.d.d..d....d....'
+      '......dddd......',
+      '....ddbaabdd....',
+      '...dbaaaaaabd...',
+      '..dbaaeaaeaabd..',
+      '..daaaaaaaaaad..',
+      '...dbaaaaaabd...',
+      '.....dbaabd.....',
+      '......daad......',
+      '.....dbaabd.....',
+      '....dd....dd....'
     ],
+    /* Asit Golemi: kare omuzlu ağır blok — durağan ve devasa */
     agolem: [
-      '..dd......dd....',
-      '.dbad....dabd...',
-      '.daad.dd.daad...',
-      'dbaaddbbddaaabd.',
-      'dbaaebaabeaaabd.',
-      'dbaaabaaabaaabd.',
-      '.daaabaaabaaad..',
-      '..dbaabaabaabd..',
-      '..dd.dd..dd.dd..',
-      '.d....d..d....d.'
-    ],
-    levi: [
-      '....dddddddd....',
-      '..ddbaaaaaabdd..',
-      '.dbaaaaaaaaaabd.',
-      'dbaaeaaaaaaeaabd',
-      'daaaaaaaaaaaaaad',
+      'dd............dd',
+      'dbd..dddddd..dbd',
+      'dbd.dbaaaabd.dbd',
+      'dbdddaaeeaadddbd',
+      'dbaaaaaaaaaaaabd',
       'dbaaaaaaaaaaaabd',
       '.dbaaaaaaaaaabd.',
+      '..dbaaaaaaaabd..',
+      '..dd..dddd..dd..',
+      '.dd....dd....dd.'
+    ],
+    /* Kum Leviathanı: aşağı daralan kama — açılmış bir ağız */
+    levi: [
+      'd..............d',
+      'dd............dd',
+      '.dd..dddddd..dd.',
       '..ddbaaaaaabdd..',
-      '.d..dd.dd.dd..d.',
-      'd.d..d....d..d.d'
+      '...daaeaaeaad...',
+      '...daaaaaaaad...',
+      '....dbaaaabd....',
+      '.....dbaabd.....',
+      '......dddd......',
+      '.......dd.......'
     ],
+    /* Spor Devi: geniş şapka üstte, kalın gövde altta — mantar silueti */
     titan: [
-      '...dddddddd.....',
-      '..dbaaaaaabd....',
-      '.dbaaaaaaaabd...',
-      'dbaaeaaaaeaabd..',
-      'dbaaaaaaaaaabd..',
-      '.dbaaaaaaaabd...',
-      '..dbaaaaaabd....',
-      '...dbaaaabd.....',
-      '....dd..dd......',
-      '...d.d..d.d.....'
-    ],
-    /* Hafıza Bekçisi Alpha — kubbeye asılı, tek büyük optik lensli bir hafıza sunucusu */
-    alpha: [
       '..dddddddddddd..',
       '.dbaaaaaaaaaabd.',
+      'dbaaaeaaaaeaaabd',
       'dbaaaaaaaaaaaabd',
-      'dbaadddddddaaabd',
-      'dbaadeewweedaabd',
-      'dbaadewwwwedaabd',
-      'dbaadddddddaaabd',
-      'dbaaaaaaaaaaaabd',
-      '.dbaaaaaaaaaabd.',
-      '..d.d.d..d.d.d..'
+      '.ddbaaaaaaaabdd.',
+      '...dd.daad.dd...',
+      '......daad......',
+      '.....dbaabd.....',
+      '....dbaaaabd....',
+      '...dd......dd...'
     ],
-    /* Kayıp Leviathan — çamurdan yükselen, sırtında çekirdek parçası olan gövde */
+    /* Alpha: tavandan sarkan, aşağı daralan kubbe — tek büyük optik lens */
+    alpha: [
+      'dddddddddddddddd',
+      '.dbaaaaaaaaaabd.',
+      '.dbaaaaaaaaaabd.',
+      '..dbaaddddaabd..',
+      '..dbaadwwdaabd..',
+      '...dbaddddabd...',
+      '....dbaaaabd....',
+      '.....dbaabd.....',
+      '......dbbd......',
+      '.......dd.......'
+    ],
+    /* Kayıp Leviathan: acıyla yana kıvrılmış asimetrik kavis */
     levi2: [
-      '.......dd.......',
-      '....dddbbddd....',
-      '..ddbaaaaaabdd..',
-      '.dbaaaaaaaaaabd.',
-      'dbaaeaaaaaaeaabd',
-      'daaaaaaaaaaaaaad',
-      'dbaaaaaaaaaaaabd',
-      '.dbaaaaaaaaaabd.',
-      '..dbbdddddbbd...',
-      '.d..d.....d..d..'
+      '.....dddd.......',
+      '...ddbaabdd.....',
+      '..dbaaaaaabd....',
+      '.dbaaeaaeaabd...',
+      '.daaaaaaaaaad...',
+      '..dbaaaaaabd....',
+      '...dbaaaabd.....',
+      '....dbaabdd.....',
+      '.....d..dbbd....',
+      '..........dd....'
     ],
     /* Kuantum Yansıması — oyuncunun silueti, kararsız kenarlarla */
     echo: [
@@ -388,6 +397,22 @@
       ctx.drawImage(cv, 0, 0); ctx.restore();
     } else ctx.drawImage(cv, x | 0, y | 0);
     return cv;
+  };
+
+  /* Vuruş flaşı: yaratığın yalnızca silueti beyaza boyanır.
+     (source-atop tüm tuvali yakaladığı için maskeli kopya önbelleklenir.) */
+  S.creatureFlash = function (ctx, x, y, spr, scale, alpha) {
+    const shape = spr.s || 'crawler';
+    const rows = CREATURE[shape] || CREATURE.crawler;
+    scale = scale || 1;
+    const key = 'crf_' + shape + '_' + scale;
+    const cv = P.cached(key, rows[0].length * scale, rows.length * scale, c => {
+      paint(c, rows, 0, 0, scale, { a: '#fff', b: '#fff', d: '#fff', l: '#fff', e: '#fff', w: '#fff', k: '#fff' });
+    });
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
+    ctx.drawImage(cv, x | 0, y | 0);
+    ctx.restore();
   };
 
   /* =====================================================================

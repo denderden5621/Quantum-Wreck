@@ -93,6 +93,48 @@ kılcal kanallarla dışarı taşıyan **Dri-Fit** teknik kumaş nemin zırh iç
 birikmesini önleyip yenilenmeyi hızlandırır, kalın ara tabanlı **yastıklamalı
 keşif botları** zorlu zeminde darbeyi emer.
 
+### Game feel · Juice
+Vuruşun teknik olarak isabet etmesi yetmez; **isabet ettiği hissedilmelidir.**
+Her darbede birlikte çalışan katman: **hit-stop** (darbe anında 50–130 ms
+donma), ekran sarsıntısı, siluetine maskelenmiş beyaz flaş, geri savrulma,
+yerçekimli partikül saçılması ve büyüyerek yükselen hasar sayısı. Hiçbiri hasar
+hesabına dokunmaz — Swink'in tanımıyla "altındaki simülasyonu değiştirmeden
+etkileşimi güçlendiren cila". Ayrıca müzik dışındaki **her ses ±%12 perde
+rastgeleliğiyle** çalınır, böylece tekrar eden efektler kulakta yorulmaz.
+
+### Sinerjiler — kombinasyon ekonomisi
+Taktikler tek başına toplanır; **sinerjiler onları birbiriyle çarpar.** Doğru
+iki cihazı aynı anda taşımak, tek tek toplamlarından belirgin biçimde güçlüdür:
+
+| Sinerji | Gerekenler | Etki |
+|---|---|---|
+| Üçgenleme | Radar + İletişim Modülü | Zayıf nokta çarpanı 1.6 → **2.3**, hedefin isabeti kalıcı düşer |
+| Yük Biriktirme | Kalkan Modülü + Kondansatör | Aşırı yükleme beklenen her tur için ×1.25 birikir (3 tur = **×1.76**) |
+| Hedef İşaretleme | Radar + İHA | Dronla dikkat dağıtma aynı anda zayıf noktayı da açar |
+| Erken Uyarı | Hava Sensörü + İletişim Modülü | Savaşa ilk tur sende başlar, düşman sersem |
+| Devre Kısası | Multimetre + ESP32 | Parazit düşmanın kalkanını da sıfırlar |
+| Çarpma Girişi | Rover + Kalkan Modülü | Savaşa ×1.8 açılış darbesiyle girilir |
+| Kırılgan Aşınma | Soğutucu + Asit Kesesi | Soğutulmuş hedefte asit iki kat işler |
+
+Sinerji paneli **"bir adım kaldı"** bölümüyle eksik tek parçayı gösterir —
+oyuncuya kuralı anlatmak yerine kancayı sezdiren signposting.
+
+### Kask kaydı — başarısızlık içerik üretir
+Ölüm saf ceza değildir. Her karşılaşma ve her yenilgi **kask kaydına** yazılır:
+
+- Üç karşılaşma veya bir yenilgi → o yaratığın zayıf noktasının **yeri** öğrenilir
+  (×1.25). Radar hâlâ gerekli: tam açığa çıkarma (×1.6) ve Üçgenleme (×2.3)
+  aracın işidir — bilgi aracın yerini almaz.
+- Her yenilgi %10, her üç karşılaşma %5 **adaptasyon** (tavan %25) — o yaratığa
+  karşı kalıcı hasar artışı. Üç kez yenilmek yaklaşık **+%57** güç demektir.
+- Ölüm ekranı bir ceza ekranı değil, bir kayıt ekranıdır: ne öğrenildiğini ve
+  toplam ölüm sayısını gösterir. "Ölüm sayın öğrenme sayındır."
+
+### Yardım modu
+Ayarlardan istenen an açılıp kapanır: gelen hasar yarıya iner, oksijen yavaş
+tükenir, ölünce malzeme kaybedilmez. Hiçbir içeriği kilitlemez, hiçbir şeyi
+"kolay" diye işaretlemez.
+
 ### Savaş
 Haritadaki tehditlere çarpınca büyük mobil butonlu, sıra tabanlı bir savaş
 ekranına geçilir. Saldırı silahla sınırlı değildir — taktikler ürettiğiniz
@@ -127,6 +169,13 @@ oyunun ortasındaki açığa çıkışın ardından okuduğun metin değişir.
 gecenin ağırlığına göre üç gerilim bandı arasında geçer: tempo yükselir, panik
 bandında tritona yakın disonan bir gölge katman eklenir. Hologram sahnesinde ise
 müzik tamamen susar — sessizlik orada anlatının kendisidir.
+
+**Leitmotif — "Eve Dönüş".** Dört notalık tek bir cümle oyunun her dönüm
+noktasında dönüşerek geri gelir: fotoğraf makinesinde saf hâliyle, Alpha'nın
+sessiz sonunda ağıt olarak (üçlü indirilmiş), ters köşede bozulmuş ve detune,
+Kuantum Yansıması'nda **tersten**, "silmek" finalinde her nota bir öncekinden
+alçak sönerek, "bırakmak" finalinde bir oktav yukarı açılarak. Aynı melodiyi
+tanımak, oyuncunun hikâyeyi duymasıdır.
 
 ### Anlatı hattı · The story
 - **Çöken Arşiv** — yarı gömülü bir kubbe. İçeride titrek mavi bir hologram,
@@ -196,6 +245,7 @@ js/
     data.enemies.js         Düşmanlar ve bölge hâkimleri
     data.npc.js             NPC'ler, takas ağı, diyaloglar
     data.quests.js          Görevler ve arşiv (codex)
+    data.synergy.js         Cihaz sinerjileri (kombinasyon ekonomisi)
     path.js                 Izgara tabanlı A* yol bulma (yığın + görüş hattı)
     world.js                Üretim, biyomlar, chunk çizimi, POI'ler, zaman
     weather.js              Dinamik hava ve parçacıklar
@@ -246,3 +296,24 @@ kararlar tahminle değil, tarayıcıda yapılan ölçümlerle verildi.
 | **Vite** | ❌ Varsayılan olarak hayır | Derleme adımı eklemek "index.html'i aç ve oyna" özelliğini bitirir; bu, projenin ilk gereksinimiydi. Script sırası bağımlılığı gerçek bir kırılganlık, ancak 25 dosya bu ölçekte yönetilebilir. İstenirse eklenebilir. |
 
 Ölçüm ortamı: Chromium 1194, 390×844 mobil görünüm, `file://` üzerinden.
+
+---
+
+## Tasarım Ölçütleri · Design Metrics
+
+Oyun tasarımı literatüründeki ölçütler nereye oturuyor — tahmin değil, ölçüm:
+
+| Ölçüt | Önce | Sonra | Yöntem |
+|---|---|---|---|
+| **Siluet ayırt ediciliği** — en karışabilir yaratık çifti (IoU) | 0.91 | **0.75** | Blackout testi: her yaratık alfa maskesine indirgenip ikili Jaccard benzerliği ölçüldü |
+| Riskli çift sayısı (IoU > 0.75) | 10 | **2** | aynı |
+| Ortalama ikili IoU | 0.511 | **0.468** | aynı |
+| **Zayıf nokta çarpanı** — bilgi / radar / sinerji | 1.6 (tek) | **1.25 / 1.6 / 2.3** | Savaş motorunda ölçülen hasar |
+| **Adaptasyon** — 3 yenilgi sonrası hasar artışı | yok | **+%57** | 200 vuruşluk ortalama |
+| **Yük biriktirme** — 3 tur beklemenin getirisi | yok | **×1.76** | Anlık vs biriktirilmiş aşırı yükleme |
+| **Kare süresi** (medyan / p99) | 16.7 / 17.3 ms | **16.7 / 17.5 ms** | 10 sn kesintisiz yürüyüş, 570 kare |
+
+Siluet testi `scratchpad/silhouette.js` mantığıyla tekrar üretilebilir: her
+yaratık 24×16 tuvale çizilir, alfa > 40 olan pikseller siluet sayılır ve tüm
+çiftler için kesişim/birleşim oranı hesaplanır. 0.75 üzeri, oyun içinde
+karıştırılma riski demektir.

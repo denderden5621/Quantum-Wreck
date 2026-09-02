@@ -293,6 +293,8 @@
 
     if (it.kind === 'tut' && it.tut.ashes) {
       QW.Audio.sfx('pickup');
+      QW.Audio.stopMusic();
+      QW.Audio.motif('home');          // motifin ilk duyuluşu: fotoğraf
       QW.Game.setFlag('camera_found', true);
       QW.Inventory.add('analog_camera', 1, true);
       QW.Game.codexUnlock('c_camera');
@@ -497,6 +499,7 @@
     QW.Inventory.consumeAll(PACIFY_COST);
     QW.Audio.stopMusic();
     QW.Audio.sfx('scan');
+    QW.Audio.motif('grief');
     QW.Dialog.say([QW.t('alpha_pac_1'), QW.t('alpha_pac_2'), QW.t('alpha_end1'), QW.t('alpha_end2')], {
       name: QW.L(QW.Enemies.get('boss_memory_alpha').name),
       onDone: () => {
