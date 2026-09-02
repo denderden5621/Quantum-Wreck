@@ -13,7 +13,9 @@
 
   S.settings = {
     lang: null, sound: true, music: true, shake: true, scanlines: true,
-    autosave: true, touch: true
+    autosave: true, touch: true,
+    /* Celeste tarzı isteğe bağlı yardım: oyunu kolaylaştırır, hiçbir şeyi kilitlemez */
+    assist: false
   };
 
   S.loadSettings = function () {
@@ -48,7 +50,8 @@
       npc: QW.NPCState.serialize(),
       codex: G.codex,
       flags: G.flags,
-      stats: G.stats
+      stats: G.stats,
+      log: G.log
     };
   };
 

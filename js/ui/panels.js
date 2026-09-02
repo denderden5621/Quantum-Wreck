@@ -111,7 +111,7 @@
     const items = [
       ['p_inventory', 'inventory'], ['p_craft', 'craft'], ['p_char', 'char'],
       ['p_quest', 'quest'], ['p_garage', 'garage'], ['p_repair', 'repair'],
-      ['p_map', 'map'], ['p_codex', 'codex'], ['p_settings', 'settings']
+      ['p_map', 'map'], ['p_syn', 'syn'], ['p_codex', 'codex'], ['p_log', 'log'], ['p_settings', 'settings']
     ];
     items.forEach(([k, v]) => {
       el.body.appendChild(row({ title: QW.t(k), fn: () => Pn.show(v) }));
@@ -346,6 +346,70 @@
         iconEl: elm('div', 'ic'),
         title: QW.L(c.name),
         sub: QW.L(c.text)
+      }));
+    });
+  };
+
+  /* ------------------------------- SİNERJİLER ---------------------------- */
+  VIEWS.syn = function () {
+    el.title.textContent = QW.t('p_syn');
+    setTabs(null);
+    const active = QW.Synergies.active();
+    const activeIds = new Set(active.map(a => a.id));
+
+    if (!active.length) el.body.appendChild(note(QW.t('syn_none')));
+
+    /* Bir adım kalanları öne çıkar — keşfi teşvik eden signposting */
+    const near = QW.Synergies.nearMisses().filter(e => !activeIds.has(e.syn.id));
+    if (near.length) {
+      el.body.appendChild(sec(QW.t('syn_near')));
+      near.forEach(e => {
+        el.body.appendChild(row({
+          iconEl: elm('div', 'ic'),
+          title: QW.L(e.syn.name),
+          sub: QW.L(e.syn.desc),
+          sub2: QW.t('syn_close', { list: e.missing.join(', ') }),
+          dis: true
+        }));
+      });
+    }
+
+    el.body.appendChild(sec(QW.t('p_syn')));
+    QW.Synergies.list.forEach(x => {
+      const on = activeIds.has(x.id);
+      const needs = (x.need || []).map(i =>
+        QW.Items.name(i) + ' ' + (QW.Inventory.has(i) ? '✓' : '✗'))
+        .concat(x.veh ? [QW.L(QW.Vehicles.def(x.veh).name) + ' ' + (QW.Vehicles.get(x.veh) ? '✓' : '✗')] : []);
+      el.body.appendChild(row({
+        item: (x.need && x.need[0]) || 'esp32',
+        title: QW.L(x.name),
+        sub: QW.L(x.desc),
+        sub2: needs.join('  ·  '),
+        right: on ? QW.t('syn_on') : '',
+        on, dis: !on
+      }));
+    });
+  };
+
+  /* ------------------------------- SAHA KAYDI ---------------------------- */
+  VIEWS.log = function () {
+    el.title.textContent = QW.t('p_log');
+    setTabs(null);
+    const G = QW.Game;
+    el.body.appendChild(note(QW.t('log_deaths', { n: G.log.deaths }) + ' — ' + QW.t('log_pride')));
+    const entries = G.logEntries();
+    if (!entries.length) { el.body.appendChild(note(QW.t('log_none'))); return; }
+    entries.forEach(e => {
+      const bits = [QW.t('log_seen', { n: e.seen })];
+      if (e.died) bits.push(QW.t('log_died', { n: e.died }));
+      if (e.weak) bits.push(QW.Combat.weakName(e.def.weak));
+      el.body.appendChild(row({
+        iconEl: elm('div', 'ic'),
+        title: QW.L(e.def.name) + '  LV' + e.def.lvl,
+        sub: QW.L(e.def.desc),
+        sub2: bits.join('  ·  '),
+        right: e.adapt ? '+' + e.adapt + '%' : '',
+        on: e.adapt > 0
       }));
     });
   };
@@ -585,7 +649,8 @@
       ['shake', 'set_shake', null],
       ['scanlines', 'set_scanline', v => QW.HUD.setScanlines(v)],
       ['autosave', 'set_autosave', null],
-      ['touch', 'set_touch', v => QW.Input.showTouch(v)]
+      ['touch', 'set_touch', v => QW.Input.showTouch(v)],
+      ['assist', 'set_assist', v => QW.HUD.toast(QW.t(v ? 'assist_on' : 'assist_off'), 'info')]
     ];
     toggles.forEach(([k, label, fn]) => {
       el.body.appendChild(row({
@@ -603,6 +668,7 @@
       }));
     });
 
+    el.body.appendChild(note(QW.t('assist_desc')));
     el.body.appendChild(note(QW.t('keys_hint')));
     el.foot.appendChild(btn(QW.t('set_save_now'), () => QW.Save.write(), 'pri'));
     el.foot.appendChild(btn(QW.t('set_to_menu'), () => {

@@ -244,6 +244,8 @@ html,body{
 .cbtn:active{ background:var(--acc); color:#04120e; }
 .cbtn.dis{ opacity:.4; }
 .cbtn.back{ border-color:var(--acc2); }
+.cbtn.syn{ border-color:var(--acc3); box-shadow:inset 0 0 0 1px rgba(255,209,102,.25); }
+.cbtn.syn small{ color:var(--acc3); }
 
 /* ------------------------- PANELLER ------------------------- */
 #panel{

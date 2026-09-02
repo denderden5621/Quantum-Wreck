@@ -8,7 +8,7 @@
   const U = QW.Utils, Wd = QW.World;
 
   const Pl = QW.Player = {
-    name: 'ARGOS-7',
+    name: 'GÖKTAY-7',
     x: 0, y: 0, dir: 'down', frame: 0, moving: false,
     level: 1, xp: 0, xpNext: 40,
     hp: 100, hpMax: 100,
@@ -166,7 +166,7 @@
     if (Pl.invuln > 0) Pl.invuln -= dt;
 
     /* Oksijen: hareket ve fırtına tüketir, dinlenince yavaş dolar */
-    const o2Rate = (Pl.moving ? 0.55 : 0.2) * (wx.o2Drain || 1);
+    const o2Rate = (Pl.moving ? 0.55 : 0.2) * (wx.o2Drain || 1) * (QW.Save.settings.assist ? 0.6 : 1);
     Pl.o2 = U.clamp(Pl.o2 - o2Rate * dt, 0, Pl.o2MaxTotal());
     if (Pl.o2 <= 0) Pl.damage(dt * 5, 'asphyx');
 
@@ -225,8 +225,14 @@
     const st = Pl.stats();
     let d = n;
     if (type && st.resist[type]) d *= (1 - st.resist[type]);
+    if (QW.Save.settings.assist) d *= 0.5;
     d = Math.max(0.2, d);
     Pl.hp -= d;
+    /* Hasar hissedilmeli: eşiği geçen darbede sarsıntı ve ses */
+    if (d >= 2 && !QW.Scenes.is('battle')) {
+      QW.HUD.shake();
+      QW.Audio.sfx('hurt');
+    }
     if (Pl.hp <= 0) { Pl.hp = 0; QW.bus.emit('player_down'); }
     return d;
   };
@@ -259,7 +265,7 @@
     Pl.rad = 0; Pl.cold = 0;
     Pl.x = Wd.spawn.x * Wd.TILE + 8;
     Pl.y = Wd.spawn.y * Wd.TILE + 8;
-    QW.Inventory.loseRandom(0.25);
+    if (!QW.Save.settings.assist) QW.Inventory.loseRandom(0.25);
   };
 
   /* ---------------------------------------------------------------

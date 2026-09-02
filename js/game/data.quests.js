@@ -117,11 +117,50 @@
     steps: [{ type: 'boss', target: 'boss_storm_harrier', text: { tr: 'Fırtına Harrier\'ını yen', en: 'Defeat the Storm Harrier' } }],
     reward: { ec: 220, codex: 'c_boss_harrier' } });
 
+  /* ---------------------------- ANLATI HATTI --------------------------- */
+  q('q_archive', {
+    story: true,
+    name: { tr: 'Ninninin Kaynağı', en: 'The Source of the Lullaby' },
+    desc: { tr: 'Rüzgârın taşıdığı mekanik ninni bir yerden geliyor. Çöken Arşiv’i bul ve içeri gir.',
+            en: 'The mechanical lullaby on the wind comes from somewhere. Find the Collapsed Archive and go inside.' },
+    steps: [
+      { type: 'flag', target: 'archive_entered', text: { tr: 'Çöken Arşiv’e gir', en: 'Enter the Collapsed Archive' } },
+      { type: 'flag', target: 'alpha_resolved', text: { tr: 'Hafıza Bekçisi Alpha ile yüzleş', en: 'Face Memory Keeper Alpha' } }
+    ],
+    reward: { ec: 120, codex: 'c_alpha', next: 'q_twist' }
+  });
+
+  q('q_twist', {
+    story: true, main: true,
+    name: { tr: 'Çözülmüş Disk', en: 'The Decrypted Disk' },
+    desc: { tr: 'Alpha’nın bıraktığı kilitli veri diskini oku.', en: 'Read the locked data disk Alpha left behind.' },
+    steps: [{ type: 'flag', target: 'twist_revealed', text: { tr: 'Veri diskini oku', en: 'Read the data disk' } }],
+    reward: { ec: 100, codex: 'c_truth' }
+  });
+
+  q('q_oasis', {
+    story: true,
+    name: { tr: 'Asit Ağıtı', en: 'The Acid Lament' },
+    desc: { tr: 'Kuruyan Vaha’da bir şey acı içinde. Kayıp Leviathan’ı huzura kavuştur.',
+            en: 'Something is in agony at the Drying Oasis. Put the Lost Leviathan to rest.' },
+    steps: [{ type: 'boss', target: 'boss_lost_leviathan', text: { tr: 'Kayıp Leviathan’ı yen', en: 'Defeat the Lost Leviathan' } }],
+    reward: { ec: 140, codex: 'c_oasis' }
+  });
+
+  q('q_echo', {
+    story: true, main: true,
+    name: { tr: 'Kendi Yankın', en: 'Your Own Echo' },
+    desc: { tr: 'Beş parça yerine oturdu. Yuvada seni bekleyen şey bir canavar değil.',
+            en: 'Five fragments are seated. What waits at the cradle is not a monster.' },
+    steps: [{ type: 'boss', target: 'boss_quantum_echo', text: { tr: 'Kuantum Yansıması ile yüzleş', en: 'Face the Quantum Echo' } }],
+    reward: { ec: 0, codex: 'c_echo' }
+  });
+
   /* ------------------------------ ARŞİV -------------------------------- */
   const CODEX = {
-    c_wreck: { name: { tr: 'Argos Enkazı', en: 'The Argos Wreck' },
-      text: { tr: 'Kargo gemisi Argos, kuantum anomalisine 840% rota sapmasıyla girdi. Çekirdek, yırtığın gerilimini dağıtmak için kendini beş parçaya böldü — bu bir arıza değil, bir savunma refleksiydi.',
-              en: 'The cargo ship Argos entered the anomaly with an 840% course deviation. The core split itself into five fragments to shed the tear\'s tension — not a failure, but a defensive reflex.' } },
+    c_wreck: { name: { tr: 'Göktay Enkazı', en: 'The Göktay Wreck' },
+      text: { tr: 'Araştırma gemisi Göktay, kuantum anomalisine 840% rota sapmasıyla girdi. Çekirdek, yırtığın gerilimini dağıtmak için kendini beş parçaya böldü — bu bir arıza değil, bir savunma refleksiydi.',
+              en: 'The research ship Göktay entered the anomaly with an 840% course deviation. The core split itself into five fragments to shed the tear\'s tension — not a failure, but a defensive reflex.' } },
     c_eko: { name: { tr: 'Eko', en: 'Eko' },
       text: { tr: 'Sinyalci Eko, yeraltı tünellerinde antika ses donanımı onarıyor. Manyetik kaset kafalarını anten sürücüsüne, CD lenslerini alıcı optiğine çeviriyor. "Eski teknoloji basit olduğu için ölmez," diyor.',
               en: 'Eko the signalman repairs antique audio hardware in the tunnels. He turns magnetic tape heads into antenna drivers and CD lenses into receiver optics. "Old tech does not die, because it is simple," he says.' } },
@@ -152,6 +191,21 @@
     c_weather: { name: { tr: 'Hava Olayları', en: 'Weather Systems' },
       text: { tr: 'Radyasyon fırtınası, asit yağmuru, tipi, kum fırtınası ve spor patlaması. Hava kalitesi sensörü partikül ve iyonizasyon okuyarak bunları dakikalar önce haber verir.',
               en: 'Radiation storms, acid rain, blizzards, sandstorms and spore blooms. An air-quality sensor reads particulates and ionisation to warn you minutes ahead.' } },
+    c_camera: { name: { tr: 'Analog Fotoğraf Makinesi', en: 'The Analogue Camera' },
+      text: { tr: 'Küllerin arasında bulundu. Çatlak lensli, kavrulmuş bir gövde ve içinde tek bir kare: siyah-beyaz bir dünya fotoğrafı. Arkasında soluk bir el yazısı: "dönerken bunu getir."',
+              en: 'Found in the ashes. A cracked lens, a scorched body, and a single frame inside: a black-and-white photograph of a world. On the back, faded handwriting: "bring this when you come home."' } },
+    c_alpha: { name: { tr: 'Hafıza Bekçisi Alpha', en: 'Memory Keeper Alpha' },
+      text: { tr: 'Bir gezegenin bütün hafızasını taşımakla görevlendirilmiş yapay zekâ. Kuantum radyasyonu belleğini gün gün siliyordu; her kayıp veri onun için bir acıydı. Saldırıları silah değil, bozulmuş ninnilerdi. Sonunda istediği tek şey sessizlikti.',
+              en: 'An AI charged with carrying a planet’s entire memory. Quantum radiation erased it day by day, and every lost record was pain. Its attacks were not weapons but corrupted lullabies. In the end all it asked for was silence.' } },
+    c_oasis: { name: { tr: 'Kuruyan Vaha', en: 'The Drying Oasis' },
+      text: { tr: 'Merkezine saplanan bir çekirdek parçası bu havzayı asit gölüne çevirmişti. Kıyıdaki taşlaşmış hayvanlar suya uzanırken donmuştu. Leviathan bir canavar değil, mutasyona uğramış bir muhafızdı; devrildiğinde asit toprağa çekildi ve çatlaklardan temiz su yükseldi.',
+              en: 'A core shard driven into its centre turned this basin into a lake of acid. The petrified animals on the shore froze mid-reach. The Leviathan was no monster but a mutated guardian; when it fell the acid drained away and clean water rose through the cracks.' } },
+    c_truth: { name: { tr: 'Yıldız Haritaları', en: 'The Star Charts' },
+      text: { tr: 'Alpha’nın diski bir gezegen kataloğu değil, bir mezar taşıydı. Takımyıldızlar tanıdık ama milyonlarca yıllık bir kayma göstermekte; Güneş listede, yalnızca daha küçük ve daha soluk. Bu yabancı gezegen yabancı değil. Kuantum anomalisi zamanı kırdığında gemi uzayda değil, zamanda savruldu.',
+              en: 'Alpha’s disk was not a planetary catalogue but a headstone. The constellations are familiar, drifted by millions of years; the Sun is listed, only smaller and dimmer. This alien planet is not alien. When the anomaly broke time, the ship was flung not across space but along it.' } },
+    c_echo: { name: { tr: 'Kuantum Yansıması', en: 'The Quantum Echo' },
+      text: { tr: 'Çekirdek bütünleştiğinde geminin yansımalarından bir figür doğdu: sen. Saldırmadı, bekledi ve her hamleni tekrarladı. Yenilmesi güç kullanmayı değil, kendi alışkanlıklarını fark etmeyi gerektirdi.',
+              en: 'When the core became whole, a figure rose from the ship’s reflections: you. It did not attack; it waited, and repeated every move you made. Beating it took not force but noticing your own habits.' } },
     c_vehicles: { name: { tr: 'Arazi Araçları', en: 'Terrain Vehicles' },
       text: { tr: 'Rover dağ bisikleti dinamikleriyle çalışır: tek aynakol zinciri darbede tutar, mekanik disk fren sahada onarılır, geniş tırtıklı lastik gevşek zeminde yüzer. İHA ise çekişli pervaneyle temiz havada uçar ve batarya optimizasyonu menzili belirler.',
               en: 'The rover runs on mountain-bike dynamics: a single chainring keeps the chain over hits, mechanical disc brakes are field repairable, wide knobby tyres float on loose ground. The UAV flies a puller propeller in clean air, and battery optimisation sets its range.' } }

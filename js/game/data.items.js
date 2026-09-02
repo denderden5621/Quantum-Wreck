@@ -295,8 +295,20 @@
 
   it('ship_log', { cat: 'key', value: 0, w: 0.1, icon: { s: 'card', c: '#ffd166', c2: '#7a5410' },
     name: { tr: 'Gemi Kaydı', en: 'Ship Log' },
-    desc: { tr: 'Argos\'un son saniyeleri. Oku ve arşive işle.', en: 'The final seconds of the Argos. Read it into the codex.' },
+    desc: { tr: 'Göktay\'ın son saniyeleri. Oku ve arşive işle.', en: 'The final seconds of the Göktay. Read it into the codex.' },
     use: { codex: 'c_wreck' } });
+
+  it('analog_camera', { cat: 'key', value: 0, w: 0.6, icon: { s: 'camera', c: '#6a6f7a', c2: '#2a2e36' },
+    name: { tr: 'Analog Fotoğraf Makinesi', en: 'Analogue Camera' },
+    desc: { tr: 'Çatlak lensli, ısıdan kavrulmuş. İçinde tek bir kare var: siyah-beyaz bir dünya fotoğrafı.',
+            en: 'Cracked lens, scorched body. One frame remains: a black-and-white photograph of a world.' },
+    use: { look: 'camera' } });
+
+  it('memory_disk', { cat: 'key', value: 0, w: 0.2, icon: { s: 'disk', c: '#8fd0ff', c2: '#1e3a5a' },
+    name: { tr: 'Kilitli Veri Diski', en: 'Locked Data Disk' },
+    desc: { tr: 'Hafıza Bekçisi Alpha’nın son armağanı. Çözüldüğünde arşivin geri kalanını açar.',
+            en: 'The last gift of Memory Keeper Alpha. Decrypted, it opens the rest of the archive.' },
+    use: { look: 'twist' } });
 
   /* --------------------------------------------------------------------- */
   const It = QW.Items = {

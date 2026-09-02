@@ -156,6 +156,20 @@
       QW.Audio.sfx('craft');
       return true;
     }
+    if (u.look === 'camera') {
+      const after = QW.Game.flags.twist_revealed;
+      QW.Audio.motif(after ? 'grief' : 'home');
+      QW.Dialog.say(after ? [QW.t('cam_after1'), QW.t('cam_after2')]
+                          : [QW.t('cam_text1'), QW.t('cam_text2')],
+        { name: QW.Items.name(id) });
+      QW.Game.codexUnlock('c_camera');
+      QW.Audio.sfx('ui');
+      return true;      // hatıra tükenmez
+    }
+    if (u.look === 'twist') {
+      QW.Game.revealTwist();
+      return true;
+    }
     if (u.codex) {
       QW.Game.codexUnlock(u.codex);
       QW.HUD.toast(QW.t('log_read'), 'good');

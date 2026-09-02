@@ -50,16 +50,21 @@
   /* ------------------------------------------------------------------
    * Temel ton üreteci
    * ------------------------------------------------------------------ */
+  /* Aynı efektin her seferinde birebir aynı çalması kulakta yorgunluk
+     yaratır ("repetition fatigue"). Müzik dışındaki her ses ±%12 perde
+     rastgeleliğiyle çalınır. */
   A.tone = function (opt) {
     if (!A.enabled || !A.ctx) return;
     const t0 = A.ctx.currentTime + (opt.delay || 0);
     const osc = A.ctx.createOscillator();
     const g = A.ctx.createGain();
+    const detune = (opt.bus === 'music' || opt.vary === false)
+      ? 1 : (1 + (Math.random() - 0.5) * 0.24);
     osc.type = opt.type || 'square';
-    osc.frequency.setValueAtTime(opt.freq || 440, t0);
+    osc.frequency.setValueAtTime((opt.freq || 440) * detune, t0);
     if (opt.to) {
-      if (opt.slide === 'exp') osc.frequency.exponentialRampToValueAtTime(Math.max(1, opt.to), t0 + (opt.dur || 0.2));
-      else osc.frequency.linearRampToValueAtTime(opt.to, t0 + (opt.dur || 0.2));
+      if (opt.slide === 'exp') osc.frequency.exponentialRampToValueAtTime(Math.max(1, opt.to * detune), t0 + (opt.dur || 0.2));
+      else osc.frequency.linearRampToValueAtTime(opt.to * detune, t0 + (opt.dur || 0.2));
     }
     const vol = (opt.vol === undefined ? 0.3 : opt.vol);
     const dur = opt.dur || 0.2;
@@ -83,9 +88,10 @@
     for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
     const src = A.ctx.createBufferSource(); src.buffer = buf;
     const flt = A.ctx.createBiquadFilter();
+    const nv = 1 + (Math.random() - 0.5) * 0.24;
     flt.type = opt.filter || 'lowpass';
-    flt.frequency.setValueAtTime(opt.freq || 1200, t0);
-    if (opt.to) flt.frequency.linearRampToValueAtTime(opt.to, t0 + dur);
+    flt.frequency.setValueAtTime((opt.freq || 1200) * nv, t0);
+    if (opt.to) flt.frequency.linearRampToValueAtTime(opt.to * nv, t0 + dur);
     const g = A.ctx.createGain();
     g.gain.setValueAtTime(opt.vol === undefined ? 0.25 : opt.vol, t0);
     g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
@@ -177,12 +183,91 @@
       lead: ['G3', '-', 'B3', '-', 'D4', '-', 'B3', '-', 'C4', '-', 'A3', '-', 'G3', '-', '-', '-'],
       bass: ['G1', '-', '-', '-', 'C2', '-', '-', '-', 'D2', '-', '-', '-', 'G1', '-', '-', '-']
     },
+    /* Ağıt — kuruyan vaha ve Alpha'nın kubbesi: yavaş, çözülmeyen akor */
+    lament: {
+      bpm: 62, wave: 'triangle', vol: 0.10,
+      /* "Eve Dönüş" motifi ağıt hâlinde: üçlü indirilmiş, araları açılmış */
+      lead: ['C3', '-', '-', 'D#3', '-', '-', 'G3', '-', '-', 'D#3', '-', '-', '-', '-', '-', '-'],
+      bass: ['C1', '-', '-', '-', '-', '-', '-', '-', 'G#0', '-', '-', '-', '-', '-', '-', '-']
+    },
+    /* Kuantum yansıması — kendi temanın tersten çalınmış hâli */
+    echo: {
+      bpm: 118, wave: 'square', vol: 0.12,
+      /* Motif tersten: yansımanın kendi teması */
+      lead: ['F4', '-', 'G4', '-', 'E4', '-', 'C4', '-', 'F4', '-', 'G4', '-', 'E4', '-', 'C4', '-'],
+      bass: ['A1', '-', '-', 'A1', '-', 'F1', '-', '-', 'C2', '-', '-', 'C2', '-', 'G1', '-', '-']
+    },
     /* Final */
     finale: {
       bpm: 92, wave: 'triangle', vol: 0.14,
       lead: ['C4', '-', 'E4', '-', 'G4', '-', 'C5', '-', 'B4', '-', 'G4', '-', 'E4', '-', 'C4', '-'],
       bass: ['C2', '-', '-', '-', 'A1', '-', '-', '-', 'F1', '-', '-', '-', 'G1', '-', '-', '-']
     }
+  };
+
+  /* ------------------------------------------------------------------
+   * Uyarlanabilir gerilim — oyuncunun stres seviyesine göre müzik değişir
+   * 0.0 sakin · 0.5 tedirgin (tempo artar) · 1.0 panik (disonan alt katman)
+   * ---------------------------------------------------------------- */
+  A.tension = 0;
+  A._tensionBand = 0;
+
+  A.setTension = function (v) {
+    v = v < 0 ? 0 : v > 1 ? 1 : v;
+    A.tension = v;
+    const band = v < 0.34 ? 0 : v < 0.67 ? 1 : 2;
+    if (band !== A._tensionBand) {
+      A._tensionBand = band;
+      /* Tempo ve katman değiştiği için dizileyici yeniden kurulur */
+      if (A._seq) { const n = A._seq.name; A.stopMusic(); A.playMusic(n); }
+    }
+  };
+
+  /* ------------------------------------------------------------------
+   * LEITMOTIF — "Eve Dönüş" motifi
+   *
+   * Dört notalık tek bir cümle oyunun her dönüm noktasında farklı biçimde
+   * geri döner: fotoğrafta kırılgan, Alpha'nın sonunda ağıt, ters köşede
+   * bozulmuş, yansımada tersten, finallerde ya sönerek ya da açılarak.
+   * Aynı melodiyi tanımak, oyuncunun hikâyeyi duymasıdır.
+   * ---------------------------------------------------------------- */
+  const MOTIF = ['C4', 'E4', 'G4', 'F4'];
+
+  const MOTIF_VARIANTS = {
+    /* saf hâli — fotoğraf makinesi */
+    home:    { notes: MOTIF, step: 0.34, type: 'triangle', vol: 0.16, mult: 1 },
+    /* ağıt: yarım ton düşük üçlü, yavaş */
+    grief:   { notes: ['C4', 'D#4', 'G4', 'D#4'], step: 0.52, type: 'triangle', vol: 0.15, mult: 1 },
+    /* bozulmuş: detune + gürültü, ters köşe */
+    broken:  { notes: ['C4', 'E4', 'F#4', 'F4'], step: 0.30, type: 'square', vol: 0.15, mult: 1, detune: 0.06 },
+    /* tersten: kuantum yansıması */
+    mirror:  { notes: MOTIF.slice().reverse(), step: 0.28, type: 'square', vol: 0.15, mult: 1 },
+    /* silinen final: her nota bir öncekinden alçak, söner */
+    erased:  { notes: MOTIF, step: 0.42, type: 'triangle', vol: 0.16, mult: 0.5, fade: true },
+    /* bırakılan final: bir oktav yukarı açılır */
+    bloom:   { notes: MOTIF.concat(['C5']), step: 0.40, type: 'triangle', vol: 0.16, mult: 2 }
+  };
+
+  A.motif = function (variant) {
+    if (!A.enabled) return;
+    A.unlock();
+    const v = MOTIF_VARIANTS[variant] || MOTIF_VARIANTS.home;
+    v.notes.forEach((n, i) => {
+      const base = hz(n) * (v.mult || 1);
+      const det = v.detune ? base * (1 + (Math.random() - 0.5) * v.detune * 2) : base;
+      const vol = v.fade ? v.vol * (1 - i / (v.notes.length + 1)) : v.vol;
+      A.tone({ freq: det, dur: v.step * 1.5, vol, type: v.type, delay: i * v.step, vary: false });
+      /* alt oktav gövde */
+      A.tone({ freq: det / 2, dur: v.step * 1.8, vol: vol * 0.45, type: 'sine', delay: i * v.step, vary: false });
+      if (v.detune && i % 2 === 0) {
+        A.tone({ freq: det * 1.01, dur: v.step, vol: vol * 0.35, type: 'sawtooth', delay: i * v.step + 0.03, vary: false });
+      }
+    });
+  };
+
+  A.motifLength = variant => {
+    const v = MOTIF_VARIANTS[variant] || MOTIF_VARIANTS.home;
+    return v.notes.length * v.step * 1000;
   };
 
   A.playMusic = function (name) {
@@ -192,7 +277,12 @@
     if (A._seq && A._seq.name === name) return;
     A.stopMusic();
     const tr = TRACKS[name]; if (!tr) return;
-    const stepMs = 60000 / tr.bpm / 2; // 8'lik nota
+
+    /* Gerilim arttıkça tempo yükselir ve ses biraz sertleşir */
+    const band = A._tensionBand;
+    const bpm = tr.bpm * (band === 0 ? 1 : band === 1 ? 1.10 : 1.22);
+    const vol = tr.vol * (band === 2 ? 1.15 : 1);
+    const stepMs = 60000 / bpm / 2; // 8'lik nota
     let i = 0, cycles = 0;
     const seq = { name, timer: null };
     seq.timer = setInterval(function () {
@@ -201,8 +291,15 @@
       if (step === 0) cycles++;
       const risePow = tr.rise ? Math.pow(2, Math.min(cycles - 1, 4) / 4) : 1; // gerilim yükselişi
       const l = tr.lead[step], b = tr.bass[step];
-      if (l && l !== '-') A.tone({ freq: hz(l) * risePow, dur: stepMs / 1000 * 0.9, vol: tr.vol, type: tr.wave, bus: 'music' });
-      if (b && b !== '-') A.tone({ freq: hz(b), dur: stepMs / 1000 * 1.4, vol: tr.vol * 0.8, type: 'triangle', bus: 'music' });
+      if (l && l !== '-') A.tone({ freq: hz(l) * risePow, dur: stepMs / 1000 * 0.9, vol, type: tr.wave, bus: 'music' });
+      if (b && b !== '-') A.tone({ freq: hz(b), dur: stepMs / 1000 * 1.4, vol: vol * 0.8, type: 'triangle', bus: 'music' });
+      /* Panik katmanı: tritona yakın, hafif detune bir gölge nota */
+      if (band === 2 && l && l !== '-' && (step % 4 === 0)) {
+        A.tone({ freq: hz(l) * 1.414, dur: stepMs / 1000 * 0.7, vol: vol * 0.28, type: 'sawtooth', bus: 'music' });
+      }
+      if (band >= 1 && b && b !== '-' && (step % 8 === 4)) {
+        A.tone({ freq: hz(b) * 0.5, dur: stepMs / 1000 * 2, vol: vol * 0.35, type: 'sine', bus: 'music' });
+      }
       i++;
     }, stepMs);
     A._seq = seq;
