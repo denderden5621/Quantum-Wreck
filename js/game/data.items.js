@@ -93,9 +93,9 @@
     desc: { tr: 'Dişli kutulu küçük motor. Kanat ve süspansiyon kontrolü.', en: 'Small geared motor. Drives control surfaces and suspension.' } });
 
   it('prop_blade', { cat: 'comp', value: 22, w: 0.3, icon: { s: 'prop', c: '#c8d2e0', c2: '#69738a' },
-    name: { tr: 'Çekişli Pervane Kanadı', en: 'Puller Propeller Blade' },
-    desc: { tr: 'Önden çekiş (puller) konfigürasyonu için hatveli kanat: gövdeyi temiz havada tutar.',
-            en: 'Pitched blade for a puller configuration: keeps the airframe in clean air.' } });
+    name: { tr: 'Pervane Kanadı', en: 'Propeller Blade' },
+    desc: { tr: 'Kök hatvesi uç hızına göre burulmuş kompozit kanat. Yüklenme dengeli, uçta kavitasyon yok.',
+            en: 'Composite blade twisted so root pitch matches tip speed. Even loading, no cavitation at the tip.' } });
 
   it('chainring', { cat: 'comp', value: 28, w: 0.6, icon: { s: 'ring', c: '#b9c4d4', c2: '#6c7688' },
     name: { tr: 'Tekli Aynakol', en: 'Single Chainring' },
@@ -193,36 +193,53 @@
     desc: { tr: 'Radyasyon fırtınalarında dışarıda kalabilmen için.', en: 'Lets you stay outside through a radiation storm.' },
     resist: { rad: 0.75 } });
 
-  /* Zırh altı kıyafetler — dayanıklılık (stamina) statını belirler */
-  it('shirt_boxy', { cat: 'gear', slot: 'shirt', value: 20, w: 0.4, sta: 8,
-    icon: { s: 'shirt', c: '#e0e4ea', c2: '#9aa2b0' },
-    name: { tr: 'Geniş Kesim Tişört', en: 'Boxy-Fit T-Shirt' },
-    desc: { tr: 'Omuzda sıkmayan bol kesim. Zırhın altında hareket serbestliği verir: +8 dayanıklılık.',
-            en: 'A loose cut that never binds the shoulder. Free movement under armour: +8 stamina.' } });
+  /* Zırh altı katmanlar — dayanıklılık (stamina) ve direnç statlarını belirler.
+     Hepsi gemi envanterinden ya da sahadan gelen, temaya ait giysilerdir. */
+  it('liner_crew', { cat: 'gear', slot: 'shirt', value: 20, w: 0.4, sta: 8,
+    icon: { s: 'shirt', c: '#c9cfda', c2: '#7a8290' },
+    name: { tr: 'Mürettebat İçliği', en: 'Crew Undersuit' },
+    desc: { tr: 'Göktay standart donanımı. Dikişleri düz, omuz hareketini kısıtlamaz — zırhın altında sürtünme yapmaz. +8 dayanıklılık.',
+            en: 'Standard Göktay issue. Flat seams, unrestricted shoulder travel — it does not chafe under armour. +8 stamina.' } });
 
-  it('shirt_drifit', { cat: 'gear', slot: 'shirt', value: 55, w: 0.3, sta: 14, regen: 0.6,
+  it('liner_wick', { cat: 'gear', slot: 'shirt', value: 55, w: 0.3, sta: 14, regen: 0.6,
     icon: { s: 'shirt', c: '#4ad0e0', c2: '#1a6a76' },
-    name: { tr: 'Dri-Fit Teknik Tişört', en: 'Dri-Fit Technical Tee' },
-    desc: { tr: 'Teri kılcal kanallarla dışarı taşıyan örgü kumaş: ter ve nem zırhın içinde birikmez. +14 dayanıklılık, hızlı yenilenme.',
-            en: 'Knit fabric that wicks sweat out through capillary channels: no moisture trapped inside the armour. +14 stamina, faster regen.' } });
+    name: { tr: 'Kılcal Kanallı İçlik', en: 'Capillary Wick Liner' },
+    desc: { tr: 'Örgüsüne kılcal kanallar dokunmuş nem transfer katmanı: ter zırhın içinde birikmez, vücut ısısı dengede kalır. +14 dayanıklılık, hızlı yenilenme.',
+            en: 'A moisture-transfer layer woven with capillary channels: sweat never pools inside the armour and core temperature holds. +14 stamina, faster regen.' } });
 
-  it('shirt_thermal', { cat: 'gear', slot: 'shirt', value: 70, w: 0.6, sta: 10, heat: 1,
+  it('liner_thermal', { cat: 'gear', slot: 'shirt', value: 70, w: 0.6, sta: 10, heat: 1,
     icon: { s: 'shirt', c: '#ff9d6a', c2: '#8a4520' },
-    name: { tr: 'Termal İçlik', en: 'Thermal Base Layer' },
-    desc: { tr: 'Merinos benzeri biyo lif örgü. Soğukta ısıyı tutar.', en: 'Merino-like bio-fibre knit. Holds warmth in the cold.' },
+    name: { tr: 'Termal Regülasyon Katmanı', en: 'Thermal Regulation Layer' },
+    desc: { tr: 'İçinden ince sıvı hattı geçen örgü. Buzulda ısıyı tutar, çölde fazlasını atar.',
+            en: 'A weave threaded with fine fluid lines. Holds heat on the glacier, sheds it in the desert.' },
     resist: { cold: 0.3 } });
 
-  it('boots_cushion', { cat: 'gear', slot: 'boots', value: 60, w: 1.2, sta: 10, spd: 0.08,
-    icon: { s: 'boot', c: '#a06a3a', c2: '#4e3018' },
-    name: { tr: 'Yastıklamalı Keşif Botu', en: 'Cushioned Exploration Boots' },
-    desc: { tr: 'Kalın ara taban zorlu zeminde darbeyi emer; uzun yürüyüşte diz yorulmaz. +10 dayanıklılık, +hız.',
-            en: 'A thick midsole soaks up impact on rough ground; knees survive the long marches. +10 stamina, +speed.' } });
+  it('liner_lead', { cat: 'gear', slot: 'shirt', value: 95, w: 0.9, sta: 6,
+    icon: { s: 'shirt', c: '#c2c86a', c2: '#5e661c' },
+    name: { tr: 'Kurşun-İpek Astar', en: 'Lead-Silk Liner' },
+    desc: { tr: 'Kurşun tozu emdirilmiş biyo-ipek. Ağır ve kalın; radyasyon fırtınasında fark yaratır.',
+            en: 'Bio-silk impregnated with lead dust. Heavy and thick, but it counts in a radiation storm.' },
+    resist: { rad: 0.25 } });
 
-  it('boots_grip', { cat: 'gear', slot: 'boots', value: 90, w: 1.4, sta: 6, spd: 0.04,
-    icon: { s: 'boot', c: '#5a6a4a', c2: '#28321f' },
-    name: { tr: 'Kramponlu Bot', en: 'Crampon Boots' },
-    desc: { tr: 'Buzulda ve ıslak kayada kaymaz.', en: 'No slipping on glacier ice or wet rock.' },
+  it('boots_regolith', { cat: 'gear', slot: 'boots', value: 60, w: 1.2, sta: 10, spd: 0.08,
+    icon: { s: 'boot', c: '#8a8f9c', c2: '#3e4350' },
+    name: { tr: 'Regolit Botu', en: 'Regolith Boots' },
+    desc: { tr: 'Kalın gözenekli ara taban keskin regolitin darbesini emer; uzun yürüyüşte diz ve bel yorulmaz. +10 dayanıklılık, +hız.',
+            en: 'A thick porous midsole soaks up the shock of sharp regolith; knees and back survive the long marches. +10 stamina, +speed.' } });
+
+  it('boots_maggrip', { cat: 'gear', slot: 'boots', value: 90, w: 1.4, sta: 6, spd: 0.04,
+    icon: { s: 'boot', c: '#5a6a7a', c2: '#232b36' },
+    name: { tr: 'Manyetik Tutunma Botu', en: 'Mag-Grip Boots' },
+    desc: { tr: 'Tabanındaki elektromıknatıslar metal enkazda ve buzda tutunur. Kaymak diye bir şey yok.',
+            en: 'Sole electromagnets bite into wreck plating and ice. Slipping is not on the table.' },
     resist: { cold: 0.2 } });
+
+  it('boots_seal', { cat: 'gear', slot: 'boots', value: 110, w: 1.6, sta: 8,
+    icon: { s: 'boot', c: '#6a8a5a', c2: '#28381f' },
+    name: { tr: 'Contalı Batak Botu', en: 'Sealed Marsh Boots' },
+    desc: { tr: 'Diz hizasına kadar contalı, asit geçirmez örgü. Bataklıkta ayağını düşünmeyi bırakırsın.',
+            en: 'Sealed to the knee in acid-proof weave. In the marsh you stop thinking about your feet.' },
+    resist: { acid: 0.3 } });
 
   /* Silahlar */
   it('cutter', { cat: 'gear', slot: 'weapon', value: 30, w: 1.5, atk: 6,

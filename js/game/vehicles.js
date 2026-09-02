@@ -2,7 +2,7 @@
  * QW.Vehicles — arazi rover'ı ve keşif İHA'sı
  *  Rover : dağ bisikleti dinamikleri (tek aynakol, mekanik disk fren,
  *          tırtıklı lastik) — bataklık ve gevşek kumda hız/koruma
- *  İHA   : çekişli pervane, batarya optimizasyonu — kanyon geçişi + tarama
+ *  İHA   : burulmuş pervane kanatları, batarya optimizasyonu — kanyon + tarama
  * ========================================================================= */
 (function (QW) {
   'use strict';
@@ -21,8 +21,8 @@
       id: 'drone', name: { tr: 'Keşif İHA\'sı', en: 'Exploration UAV' },
       dura: 70, battery: 100, drain: 5.5, speed: 1.9,
       caps: { fly: true, scan: true },
-      parts: { tr: 'Çekişli pervane · uçuş kontrolcüsü · optimize batarya',
-               en: 'Puller propeller · flight controller · optimised battery' }
+      parts: { tr: 'Burulmuş pervane · uçuş kontrolcüsü · optimize batarya',
+               en: 'Twisted propeller · flight controller · optimised battery' }
     }
   };
 

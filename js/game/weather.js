@@ -42,8 +42,10 @@
     Wt.duration = 0; Wt.incoming = null; Wt.parts = [];
   };
 
-  Wt.tick = function (dt, biomeKey) {
+  Wt.tick = function (dt, biomeKey, sheltered) {
     Wt.timer -= dt;
+    /* Fırtınada açıkta geçirilen süre */
+    if (Wt.current.id !== 'clear' && !sheltered) Wt._outdoor = (Wt._outdoor || 0) + dt;
 
     /* Sensör: fırtına başlamadan önce uyarı */
     if (Wt.current.id === 'clear' && Wt.timer < 25 && !Wt.incoming) {
@@ -62,6 +64,8 @@
         Wt.set(t.id);
         Wt.timer = 45 + Math.random() * 60;
       } else {
+        /* Fırtınayı dışarıda, canını kaybetmeden atlattıysa görev tamam */
+        if (Wt._outdoor > 25 && QW.Player.hp > 0) QW.Game.setFlag('storm_survived', true);
         Wt.set('clear');
         Wt.timer = 110 + Math.random() * 120;
         QW.HUD.toast(QW.t('w_ended'), 'good');
@@ -75,6 +79,7 @@
   Wt.set = function (id) {
     const t = TYPES[id] || TYPES.clear;
     Wt.current = t;
+    Wt._outdoor = 0;
     Wt.parts = [];
     if (id !== 'clear') {
       QW.HUD.toast(QW.t('w_started', { w: QW.t(t.name) }), 'bad');

@@ -454,11 +454,11 @@
     cv.style.display = 'block'; cv.style.margin = '0 auto';
     cv.style.border = '2px solid #26365c';
     const t = QW.Player.tilePos();
-    QW.World.drawMinimap(cv, t.tx, t.ty, 300, false);
+    QW.World.drawMinimap(cv, t.tx, t.ty, 520, false);
     el.body.appendChild(cv);
 
     /* Hava tahmini — yalnızca hava kalitesi sensörü varsa */
-    el.body.appendChild(sec(QW.t('w_clear').toUpperCase()));
+    el.body.appendChild(sec(QW.t('w_head')));
     if (QW.Crafting.hasPassive('forecast')) {
       const w = QW.Weather;
       if (w.current.id !== 'clear') {
@@ -473,12 +473,53 @@
       el.body.appendChild(note(QW.t('w_need_sensor')));
     }
 
+    /* Bulunduğun bölge */
+    const reg = QW.Regions.at(t.tx, t.ty);
+    if (reg) {
+      el.body.appendChild(sec(QW.t('map_here')));
+      el.body.appendChild(statline(QW.L(reg.name), QW.World.biomeNameAt(t.tx, t.ty)));
+    }
+
+    /* --- Sinyal ağı: hızlı seyahat --- */
+    el.body.appendChild(sec(QW.t('ft_head')));
+    if (!QW.Crafting.hasPassive('comms')) {
+      el.body.appendChild(note(QW.t('ft_need')));
+    } else {
+      const nodes = QW.World.travelNodes();
+      if (!nodes.length) el.body.appendChild(note(QW.t('ft_none')));
+      nodes.forEach(p => {
+        const c = QW.World.travelCost(p);
+        const here = c.d < 4;
+        el.body.appendChild(row({
+          iconEl: elm('div', 'ic'),
+          title: QW.L(p.name),
+          sub: QW.Regions.nameAt(p.x, p.y),
+          sub2: here ? QW.t('ft_here') : QW.t('ft_cost', { h: c.hours, s: c.stamina }),
+          right: here ? '●' : c.d + ' ◈',
+          dis: here,
+          fn: () => {
+            if (here) return;
+            QW.Dialog.confirm(QW.L(p.name) + ' — ' + QW.t('ft_cost', { h: c.hours, s: c.stamina }), () => {
+              if (QW.World.travelTo(p)) { Pn.close(); }
+            });
+          }
+        }));
+      });
+    }
+
     el.body.appendChild(sec(QW.t('p_map')));
-    /* Keşfedilmiş her POI'ye tile cinsinden mesafe */
-    QW.World.pois.forEach(p => {
-      if (!QW.World.isDiscovered(p.x, p.y)) return;
-      const d = Math.round(U.dist(t.tx, t.ty, p.x, p.y));
-      el.body.appendChild(statline(QW.L(p.name), d + ' ◈'));
+    /* Keşfedilmiş POI'ler: en yakından uzağa, bölge adıyla birlikte */
+    const found = QW.World.pois
+      .filter(p => QW.World.isDiscovered(p.x, p.y))
+      .map(p => ({ p, d: Math.round(U.dist(t.tx, t.ty, p.x, p.y)) }))
+      .sort((a, b) => a.d - b.d);
+    if (!found.length) el.body.appendChild(note(QW.t('codex_none')));
+    found.forEach(({ p, d }) => {
+      const rn = QW.Regions.nameAt(p.x, p.y);
+      const line = elm('div', 'statline');
+      line.appendChild(elm('em', null, QW.L(p.name) + (rn ? '  ·  ' + rn : '')));
+      line.appendChild(elm('span', null, d + ' ◈'));
+      el.body.appendChild(line);
     });
     if (QW.Vehicles.get('drone')) {
       el.foot.appendChild(btn(QW.t('drone_scan'), () => { QW.Vehicles.droneScan(); Pn.render(); }, 'pri'));

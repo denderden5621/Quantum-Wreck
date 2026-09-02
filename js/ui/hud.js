@@ -55,7 +55,11 @@
     H.el.weather.style.color = w.id === 'clear' ? '#7d93a8' : '#ff5d7a';
     H.el.credits.textContent = Math.floor(P.credits) + ' EC';
     const t = P.tilePos();
-    H.el.biome.textContent = Wd.biomeNameAt(t.tx, t.ty);
+    /* Büyük haritada nerede olduğunu bilmek önemli: bölge adı + biyom */
+    const region = QW.Regions.nameAt(t.tx, t.ty);
+    H.el.biome.textContent = region
+      ? region + ' · ' + Wd.biomeNameAt(t.tx, t.ty)
+      : Wd.biomeNameAt(t.tx, t.ty);
 
     const q = QW.Quests.tracked();
     if (q) {

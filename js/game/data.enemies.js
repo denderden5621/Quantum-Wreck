@@ -207,6 +207,78 @@
     intro: { tr: 'Rüzgâr birden duruyor. Gölge büyüyor.', en: 'The wind stops all at once. The shadow grows.' }
   });
 
+  /* ---- Roster dolgusu: bazı biyomlarda tek tür düşman vardı ---- */
+  en('tide_crab', {
+    name: { tr: 'Gelgit Yengeci', en: 'Tide Crab' },
+    biome: ['shore'], lvl: 2, hp: 32, atk: 8, def: 6, spd: 4, xp: 11, ec: 8,
+    weak: 'joint', sprite: { s: 'crab', c: '#c98d5e', c2: '#5e3a20' },
+    moves: [{ id: 'pinch', w: 3, dmg: 1.0 }, { id: 'shell', w: 2, dmg: 0, kind: 'defend' }],
+    drop: [{ id: 'scrap', n: 2, p: 0.6 }, { id: 'bio_fiber', n: 2, p: 0.6 }],
+    desc: { tr: 'Kabuğuna enkaz parçası yapıştırmış, gelgit hattında yürüyen kabuklu.',
+            en: 'A crustacean walking the tide line with wreckage cemented to its shell.' }
+  });
+
+  en('salt_wader', {
+    name: { tr: 'Tuz Yürüyeni', en: 'Salt Wader' },
+    biome: ['shore', 'swamp'], lvl: 4, hp: 44, atk: 12, def: 4, spd: 8, xp: 19, ec: 14,
+    weak: 'optics', sprite: { s: 'wader', c: '#d8d0b8', c2: '#6a6250' },
+    moves: [{ id: 'stab', w: 3, dmg: 1.1 }, { id: 'wade', w: 1, dmg: 0.5, kind: 'evade' }],
+    drop: [{ id: 'bio_fiber', n: 3, p: 0.7 }, { id: 'quartz', n: 1, p: 0.3 }],
+    desc: { tr: 'Uzun bacaklarıyla tuzlu sığlıkta avlanır. Gagası bir mızrak.',
+            en: 'It hunts the salt shallows on long legs. Its beak is a spear.' }
+  });
+
+  en('drift_husk', {
+    name: { tr: 'Sürüklenen Kabuk', en: 'Drift Husk' },
+    biome: ['shore', 'wreck', 'plains'], lvl: 6, hp: 58, atk: 15, def: 7, spd: 6, xp: 27, ec: 20,
+    night: true, weak: 'core', sprite: { s: 'husk', c: '#8a9aa8', c2: '#3a4450' },
+    moves: [{ id: 'lash', w: 3, dmg: 1.1 }, { id: 'drain', w: 2, dmg: 0.9, kind: 'drain' }],
+    drop: [{ id: 'scrap', n: 3, p: 0.8 }, { id: 'power_cell', n: 1, p: 0.3 }],
+    desc: { tr: 'Kıyıya vuran boş bir basınç giysisi. İçinde bir şey hâlâ hareket ediyor.',
+            en: 'An empty pressure suit washed ashore. Something inside it still moves.' }
+  });
+
+  en('ice_mite', {
+    name: { tr: 'Buz Akarı', en: 'Ice Mite' },
+    biome: ['glacier'], lvl: 2, hp: 26, atk: 7, def: 3, spd: 10, xp: 10, ec: 7,
+    weak: 'shell', resist: { cold: 0.8 }, sprite: { s: 'mite', c: '#bfe4f4', c2: '#4a7a94' },
+    moves: [{ id: 'nip', w: 3, dmg: 0.9 }, { id: 'swarm', w: 2, dmg: 1.2 }],
+    drop: [{ id: 'ice_shard', n: 2, p: 0.8 }],
+    desc: { tr: 'Sürüler hâlinde buzun altında ilerler. Tek başına zararsız.',
+            en: 'It moves under the ice in swarms. Alone it is harmless.' }
+  });
+
+  en('glacier_stalk', {
+    name: { tr: 'Buzul Sapı', en: 'Glacier Stalk' },
+    biome: ['glacier', 'mountain'], lvl: 6, hp: 66, atk: 16, def: 9, spd: 3, xp: 30, ec: 22,
+    weak: 'vent', resist: { cold: 1 }, vuln: { heat: 1.4 },
+    sprite: { s: 'stalk', c: '#a8cfe0', c2: '#3a5a70' },
+    moves: [{ id: 'impale', w: 3, dmg: 1.2 }, { id: 'root', w: 2, dmg: 0, kind: 'defend' }, { id: 'shard', w: 2, dmg: 1.1 }],
+    drop: [{ id: 'ice_shard', n: 4, p: 0.9 }, { id: 'titanium', n: 1, p: 0.4 }],
+    desc: { tr: 'Buzdan çıkan sabit bir sap. Yaklaşana kadar taş sanırsın.',
+            en: 'A fixed stalk rising from the ice. You take it for stone until you are close.' }
+  });
+
+  en('bog_lantern', {
+    name: { tr: 'Batak Feneri', en: 'Bog Lantern' },
+    biome: ['swamp', 'forest'], lvl: 5, hp: 40, atk: 14, def: 3, spd: 11, xp: 24, ec: 19,
+    night: true, weak: 'optics', sprite: { s: 'lantern', c: '#c8e46a', c2: '#4a6a18' },
+    moves: [{ id: 'lure', w: 2, dmg: 0.7, kind: 'stress' }, { id: 'burst', w: 3, dmg: 1.2, kind: 'acid' }],
+    drop: [{ id: 'acid_sac', n: 1, p: 0.5 }, { id: 'spore_cap', n: 2, p: 0.6 }],
+    desc: { tr: 'Bataklıkta yüzen soluk bir ışık. Peşinden gidenler dönmüyor.',
+            en: 'A pale light drifting over the marsh. Those who follow it do not return.' }
+  });
+
+  en('scree_runner', {
+    name: { tr: 'Moloz Koşucusu', en: 'Scree Runner' },
+    biome: ['mountain', 'canyon', 'desert'], lvl: 4, hp: 38, atk: 13, def: 4, spd: 12, xp: 20, ec: 15,
+    weak: 'joint', sprite: { s: 'runner', c: '#b0a08a', c2: '#4a4034' },
+    moves: [{ id: 'charge', w: 3, dmg: 1.2 }, { id: 'kick', w: 2, dmg: 0.9, kind: 'blind' }],
+    drop: [{ id: 'titanium', n: 1, p: 0.5 }, { id: 'copper', n: 2, p: 0.5 }],
+    desc: { tr: 'Dik moloz yamacında koşarak avlanır. Durduğunda çoktan geç kalmışsındır.',
+            en: 'It hunts at a run across loose scree. By the time it stops, you are already late.' }
+  });
+
   /* --------------------- ANLATI HÂKİMLERİ --------------------- */
   en('boss_memory_alpha', {
     boss: true, story: true,

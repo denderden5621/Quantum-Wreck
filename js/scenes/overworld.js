@@ -95,7 +95,7 @@
       P0.tick(dt, caps);
       QW.Vehicles.tick(dt, P0.moving);
       Wd.tickTime(dt);
-      QW.Weather.tick(dt, Wd.biomeKeyAt(tp.tx, tp.ty));
+      QW.Weather.tick(dt, Wd.biomeKeyAt(tp.tx, tp.ty), caps.inCamp);
       QW.Save.tick(dt);
 
       encounterLock = Math.max(0, encounterLock - dt);
@@ -255,16 +255,29 @@
       if (d < best) { best = d; interactTarget = { kind: 'node', node: n, label: QW.t('act_gather') + ': ' + QW.Items.name(n.item) }; }
     }
 
+    /* Yol üstü işaretleri */
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+      const lm = Wd.landmarkAt(t.tx + dx, t.ty + dy);
+      if (!lm) continue;
+      const d = Math.abs(dx) + Math.abs(dy);
+      if (d < best) {
+        best = d;
+        interactTarget = { kind: 'landmark', lm, label: QW.t('act_search') + ': ' + QW.L(lm.def.name) };
+      }
+    }
+
     /* POI */
     const poi = Wd.poiNear(t.tx, t.ty, 1.5);
     if (poi) {
       let label = QW.t('act_search');
       if (poi.kind === 'camp' || poi.kind === 'station') label = QW.t('act_talk');
       else if (poi.kind === 'lair' || poi.kind === 'archive') label = QW.t('act_enter');
+      else if (poi.kind === 'city') label = QW.t('act_enter');
+      else if (poi.kind === 'pass') label = QW.t('act_search');
       else if (poi.kind === 'wreck') label = QW.t('act_rest');
       else if (poi.kind === 'oasis') label = poi.healed ? QW.t('oasis_drink') : QW.t('oasis_approach');
       if (best > 0.5 || poi.kind === 'camp' || poi.kind === 'station' || poi.kind === 'lair'
-          || poi.kind === 'archive' || poi.kind === 'oasis') {
+          || poi.kind === 'archive' || poi.kind === 'oasis' || poi.kind === 'city') {
         interactTarget = { kind: 'poi', poi, label: label + ' - ' + QW.L(poi.name) };
       }
     }
@@ -314,6 +327,14 @@
       return;
     }
 
+    if (it.kind === 'landmark') {
+      const got = Wd.lootLandmark(it.lm);
+      QW.Audio.sfx('pickup');
+      if (got.length) QW.HUD.toast(QW.t('found') + ' ' + got.join(', '), 'good');
+      else QW.HUD.toast(QW.t('act_nothing'), 'info');
+      return;
+    }
+
     if (it.kind === 'node') {
       const n = it.node;
       QW.Inventory.add(n.item, n.n);
@@ -332,6 +353,39 @@
         if (poi.beacon || !poi.npc) { QW.Panels.show('rest'); break; }
         talkTo(poi.npc, poi);
         break;
+
+      case 'city': {
+        QW.Game.setFlag('visit_' + poi.id, true);
+        const ids = poi.npcs || [];
+        QW.Game.atStationBench = true;
+        QW.Audio.fadeMusicTo('camp');
+        QW.Dialog.say([QW.L(poi.blurb || poi.name)], {
+          name: QW.L(poi.name),
+          choices: ids.map(id => ({
+            label: QW.L(QW.NPCs.get(id).name), fn: () => talkTo(id, poi)
+          })).concat([
+            { label: QW.t('p_craft'), fn: () => QW.Panels.show('craft') },
+            { label: QW.t('p_rest'), fn: () => QW.Panels.show('rest') },
+            { label: QW.t('back') }
+          ])
+        });
+        break;
+      }
+
+      case 'pass': {
+        const from = QW.Regions.at(poi.x - 8, poi.y);
+        const to = QW.Regions.at(poi.x + 8, poi.y);
+        QW.Dialog.say([
+          QW.L({ tr: 'Dar bir koridor. İki yanda kaya duvarı, ortada rüzgârın açtığı yol.',
+                 en: 'A narrow corridor. Rock wall on both sides, a road opened by the wind.' }),
+          (from && to && from !== to)
+            ? QW.L({ tr: QW.L(from.name) + ' ile ' + QW.L(to.name) + ' arasında.',
+                     en: 'Between ' + QW.L(from.name) + ' and ' + QW.L(to.name) + '.' })
+            : QW.L(poi.name)
+        ], { name: QW.L(poi.name) });
+        QW.World.discover(poi.x, poi.y, 16);
+        break;
+      }
 
       case 'station': {
         const ids = poi.npcs || [];
@@ -526,6 +580,7 @@
   function talkTo(npcId, poi) {
     const def = QW.NPCs.get(npcId);
     const st = QW.NPCState.of(npcId);
+    if (poi && poi.id) QW.Game.setFlag('visit_' + poi.id, true);
     if (!st.met) {
       st.met = true;
       QW.bus.emit('npc_met', npcId);

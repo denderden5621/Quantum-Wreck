@@ -117,6 +117,75 @@
     steps: [{ type: 'boss', target: 'boss_storm_harrier', text: { tr: 'Fırtına Harrier\'ını yen', en: 'Defeat the Storm Harrier' } }],
     reward: { ec: 220, codex: 'c_boss_harrier' } });
 
+  /* ------------------------- SAHA GÖREVLERİ ---------------------------
+   * Motor kill/visit adımlarını destekliyordu ama tek bir görev kullanmıyordu;
+   * her şey "topla" ya da "boss yen"di. Bunlar avlanma, teslimat ve keşif
+   * ekseninde çeşitlilik getirir. */
+  q('q_hunt_swarm', {
+    field: true, repeatable: true,
+    name: { tr: 'Sürü Seyreltme', en: 'Thinning the Swarm' },
+    desc: { tr: 'Enkazın çevresi hurda sürüngeniyle doldu. Sayılarını azalt.',
+            en: 'Scrap crawlers have overrun the ground around the wreck. Cut their numbers.' },
+    steps: [{ type: 'kill', target: 'scrap_crawler', n: 6,
+      text: { tr: 'Hurda sürüngeni avla', en: 'Hunt scrap crawlers' } }],
+    reward: { ec: 55, items: { scrap: 6, repair_kit: 1 } }
+  });
+
+  q('q_hunt_night', {
+    field: true,
+    name: { tr: 'Gece Vardiyası', en: 'Night Shift' },
+    desc: { tr: 'Geceleri anomalinin kenarında bir şey uçuyor. Üçünü indir.',
+            en: 'Something flies at the edge of the anomaly after dark. Bring down three.' },
+    steps: [{ type: 'kill', target: 'void_moth', n: 3,
+      text: { tr: 'Boşluk güvesi avla (gece)', en: 'Hunt void moths (night)' } }],
+    reward: { ec: 120, items: { data_crystal: 2 }, codex: 'c_weather' }
+  });
+
+  q('q_hunt_shore', {
+    field: true,
+    name: { tr: 'Gelgit Hattı', en: 'The Tide Line' },
+    desc: { tr: 'Kıyıda basınç giysileri kıpırdıyor. İçlerindeki her neyse durdur.',
+            en: 'Pressure suits are stirring on the shore. Stop whatever is inside them.' },
+    steps: [{ type: 'kill', target: 'drift_husk', n: 4,
+      text: { tr: 'Sürüklenen kabuk avla', en: 'Hunt drift husks' } }],
+    reward: { ec: 100, items: { power_cell: 4, o2_canister: 2 } }
+  });
+
+  q('q_survey', {
+    field: true,
+    name: { tr: 'Kartografi', en: 'Cartography' },
+    desc: { tr: 'Kask haritası boş. Üç büyük yerleşimi de kendi gözünle gör.',
+            en: 'Your helmet map is blank. See all three great settlements with your own eyes.' },
+    steps: [
+      { type: 'visit', target: 'city_forge',  text: { tr: 'Ocak Şehri’ne git', en: 'Reach the Forge' } },
+      { type: 'visit', target: 'city_spire',  text: { tr: 'Buz Kulesi’ne git', en: 'Reach Icespire' } },
+      { type: 'visit', target: 'city_bazaar', text: { tr: 'Kum Pazarı’na git', en: 'Reach the Sand Bazaar' } }
+    ],
+    reward: { ec: 200, items: { comms_module: 1 }, codex: 'c_vehicles' }
+  });
+
+  q('q_delivery', {
+    field: true,
+    name: { tr: 'Kablo Borcu', en: 'A Debt in Cable' },
+    desc: { tr: 'Krank’ın istediği kabloyu Eko’ya götürmen gerekiyor — ikisi de birbiriyle konuşmuyor.',
+            en: 'Krank’s cable has to reach Eko — the two of them are not speaking.' },
+    steps: [
+      { type: 'collect', target: 'ti_wire', n: 3, text: { tr: 'Titanyum kablo çek', en: 'Draw titanium cable' } },
+      { type: 'visit', target: 'camp_eko', text: { tr: 'Eko’ya ulaştır', en: 'Deliver to Eko' } }
+    ],
+    reward: { ec: 140, items: { cassette_mech: 1, cd_lens: 1 } }
+  });
+
+  q('q_storm', {
+    field: true,
+    name: { tr: 'Fırtınada Ayakta', en: 'Standing in the Storm' },
+    desc: { tr: 'Bir fırtınayı sığınmadan atlat. Kuşamın buna dayanmalı.',
+            en: 'Ride out a storm without shelter. Your loadout has to hold.' },
+    steps: [{ type: 'flag', target: 'storm_survived',
+      text: { tr: 'Bir fırtınayı dışarıda atlat', en: 'Survive a storm in the open' } }],
+    reward: { ec: 160, items: { antirad: 3, coolant: 2 }, codex: 'c_weather' }
+  });
+
   /* ---------------------------- ANLATI HATTI --------------------------- */
   q('q_archive', {
     story: true,
@@ -165,8 +234,8 @@
       text: { tr: 'Sinyalci Eko, yeraltı tünellerinde antika ses donanımı onarıyor. Manyetik kaset kafalarını anten sürücüsüne, CD lenslerini alıcı optiğine çeviriyor. "Eski teknoloji basit olduğu için ölmez," diyor.',
               en: 'Eko the signalman repairs antique audio hardware in the tunnels. He turns magnetic tape heads into antenna drivers and CD lenses into receiver optics. "Old tech does not die, because it is simple," he says.' } },
     c_valk: { name: { tr: 'Valkyrie', en: 'Valkyrie' },
-      text: { tr: 'Uçurum kenarında yaşıyor, kanyon şahinlerini izleyerek uçuş öğrenmiş. Pervanenin önde olması gerektiğinde ısrarcı: çekişli konfigürasyon gövdeyi temiz havada tutar.',
-              en: 'She lives on the cliff edge and learned flight by watching canyon shrikes. She insists the propeller belongs up front: a puller keeps the airframe in clean air.' } },
+      text: { tr: 'Uçurum kenarında yaşıyor, kanyon şahinlerini izleyerek uçuş öğrenmiş. Kanat burulması konusunda ısrarcı: hatve uç hızıyla birlikte azalmalı, yoksa pervane kendi girdabını yutar.',
+              en: 'She lives on the cliff edge and learned flight by watching canyon shrikes. She is insistent about blade twist: pitch must fall with tip speed, or the prop eats its own wake.' } },
     c_krank: { name: { tr: 'Krank', en: 'Krank' },
       text: { tr: 'Göçebe tamirci. Tek aynakol ve mekanik disk fren dışında hiçbir aktarma organını sahada güvenilir bulmuyor. Ödeme yalnızca işlenmiş titanyum kabloyla.',
               en: 'The nomad mechanic. He trusts no drivetrain in the field but a single chainring and mechanical disc brakes. Payment in drawn titanium cable only.' } },
@@ -207,8 +276,8 @@
       text: { tr: 'Çekirdek bütünleştiğinde geminin yansımalarından bir figür doğdu: sen. Saldırmadı, bekledi ve her hamleni tekrarladı. Yenilmesi güç kullanmayı değil, kendi alışkanlıklarını fark etmeyi gerektirdi.',
               en: 'When the core became whole, a figure rose from the ship’s reflections: you. It did not attack; it waited, and repeated every move you made. Beating it took not force but noticing your own habits.' } },
     c_vehicles: { name: { tr: 'Arazi Araçları', en: 'Terrain Vehicles' },
-      text: { tr: 'Rover dağ bisikleti dinamikleriyle çalışır: tek aynakol zinciri darbede tutar, mekanik disk fren sahada onarılır, geniş tırtıklı lastik gevşek zeminde yüzer. İHA ise çekişli pervaneyle temiz havada uçar ve batarya optimizasyonu menzili belirler.',
-              en: 'The rover runs on mountain-bike dynamics: a single chainring keeps the chain over hits, mechanical disc brakes are field repairable, wide knobby tyres float on loose ground. The UAV flies a puller propeller in clean air, and battery optimisation sets its range.' } }
+      text: { tr: 'Rover dağ bisikleti dinamikleriyle çalışır: tek aynakol zinciri darbede tutar, mekanik disk fren sahada onarılır, geniş tırtıklı lastik gevşek zeminde yüzer. İHA ise burulmuş kanatlarla uçar; hatve uç hızıyla azalır ve batarya optimizasyonu menzili belirler.',
+              en: 'The rover runs on mountain-bike dynamics: a single chainring keeps the chain over hits, mechanical disc brakes are field repairable, wide knobby tyres float on loose ground. The UAV flies twisted blades whose pitch falls with tip speed, and battery optimisation sets its range.' } }
   };
 
   QW.QuestDB = {
