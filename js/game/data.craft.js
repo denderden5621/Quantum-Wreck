@@ -123,6 +123,16 @@
     name: { tr: 'Ark Mızrağı', en: 'Arc Lance' },
     note: { tr: 'İstasyon tezgâhı gerekir.', en: 'Requires the Station bench.' } });
 
+  rec('r_cryo', { cat: 'gear', lock: true, need: { titanium: 2, ti_wire: 2, quartz: 2, coolant: 2 }, out: { id: 'cryo_injector', n: 1 }, time: 3.0, fail: 0.15,
+    name: { tr: 'Kriyo Şırıngası', en: 'Cryo Injector' },
+    note: { tr: 'Şema: Krank. Buzulda öğrendiği şeyi sana satar: sıcak şeyleri soğuk vurursun.',
+            en: 'Schematic: Krank. He sells you what the glacier taught him: hit hot things cold.' } });
+
+  rec('r_etchant', { cat: 'gear', lock: true, need: { acid_sac: 3, scrap: 4, copper: 2, pcb: 1 }, out: { id: 'etchant_gun', n: 1 }, time: 2.8, fail: 0.18,
+    name: { tr: 'Dağlama Tabancası', en: 'Etchant Gun' },
+    note: { tr: 'Şema: Eko. Devre dağlamak için kullandığı asidi silaha çevirmiş.',
+            en: 'Schematic: Eko. He turned the acid he etches boards with into a weapon.' } });
+
   /* ---------------------------- ARAÇ ---------------------------- */
   rec('r_chainring', { cat: 'veh', need: { titanium: 3, scrap: 2 }, out: { id: 'chainring', n: 1 }, time: 2.0,
     name: { tr: 'Tekli Aynakol', en: 'Single Chainring' },

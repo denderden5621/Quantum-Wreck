@@ -242,20 +242,34 @@
     resist: { acid: 0.3 } });
 
   /* Silahlar */
-  it('cutter', { cat: 'gear', slot: 'weapon', value: 30, w: 1.5, atk: 6,
+  it('cutter', { cat: 'gear', slot: 'weapon', value: 30, w: 1.5, atk: 6, element: 'heat',
     icon: { s: 'cutter', c: '#ff8f4d', c2: '#7a3a10' },
     name: { tr: 'Plazma Kesici', en: 'Plasma Cutter' },
-    desc: { tr: 'Kurtarma aleti, silah değil. Ama eldeki tek şey.', en: 'A salvage tool, not a weapon. But it is what you have.' } });
+    desc: { tr: 'Kurtarma aleti, silah değil. Ama eldeki tek şey. Isı verir.',
+            en: 'A salvage tool, not a weapon. But it is what you have. It deals heat.' } });
 
-  it('rail_pistol', { cat: 'gear', slot: 'weapon', value: 160, w: 2, atk: 14,
+  it('rail_pistol', { cat: 'gear', slot: 'weapon', value: 160, w: 2, atk: 14, element: 'shock',
     icon: { s: 'gun', c: '#9fb6c9', c2: '#3d4a5e' },
     name: { tr: 'Ray Tabancası', en: 'Rail Pistol' },
-    desc: { tr: 'Kondansatör bankası mermiyi mıknatısla fırlatır. Gürültülü ve etkili.', en: 'A capacitor bank slings the slug magnetically. Loud and effective.' } });
+    desc: { tr: 'Kondansatör bankası mermiyi mıknatısla fırlatır. Gürültülü, etkili, elektrikli.',
+            en: 'A capacitor bank slings the slug magnetically. Loud, effective, electric.' } });
 
-  it('arc_lance', { cat: 'gear', slot: 'weapon', value: 280, w: 3, atk: 22,
+  it('arc_lance', { cat: 'gear', slot: 'weapon', value: 280, w: 3, atk: 22, element: 'shock',
     icon: { s: 'lance', c: '#8fd0ff', c2: '#25567f' },
     name: { tr: 'Ark Mızrağı', en: 'Arc Lance' },
     desc: { tr: 'Kapalı devre yay boşalması. Zırhı yok sayar.', en: 'Closed-loop arc discharge. It ignores armour.' } });
+
+  it('cryo_injector', { cat: 'gear', slot: 'weapon', value: 210, w: 2.2, atk: 17, element: 'cold',
+    icon: { s: 'gun', c: '#bfe4f4', c2: '#2f5f7a' },
+    name: { tr: 'Kriyo Şırıngası', en: 'Cryo Injector' },
+    desc: { tr: 'Sıkıştırılmış soğutucuyu tek atımda boşaltır. Camsı kabuk termal şoktan çatlar.',
+            en: 'Dumps compressed coolant in one shot. Glassy carapace cracks from thermal shock.' } });
+
+  it('etchant_gun', { cat: 'gear', slot: 'weapon', value: 190, w: 2.4, atk: 16, element: 'acid',
+    icon: { s: 'gun', c: '#9be24a', c2: '#3a6a12' },
+    name: { tr: 'Dağlama Tabancası', en: 'Etchant Gun' },
+    desc: { tr: 'Devre dağlama asidini basınçla püskürtür. Zırhı yedirir, ete yapışır.',
+            en: 'Sprays circuit-etching acid under pressure. It eats armour and clings to flesh.' } });
 
   /* ------------------------------- SARF --------------------------------- */
   it('medkit', { cat: 'use', value: 35, w: 0.4, use: { hp: 45 }, icon: { s: 'kit', c: '#ff6a7d', c2: '#7a1f2c' },
@@ -326,6 +340,39 @@
     desc: { tr: 'Hafıza Bekçisi Alpha’nın son armağanı. Çözüldüğünde arşivin geri kalanını açar.',
             en: 'The last gift of Memory Keeper Alpha. Decrypted, it opens the rest of the archive.' },
     use: { look: 'twist' } });
+
+  /* -------------------- ZİNDAN CİHAZLARI --------------------
+     Zelda kalıbı: cihaz zindanda bulunur, bulmacalarla kendini öğretir,
+     boss onunla yenilir. Dışarıda da bir işe yararlar. */
+  it('dev_grapnel', { cat: 'dev', value: 0, w: 0.8, icon: { s: 'ant', c: '#c8d2e0', c2: '#5a6470' },
+    name: { tr: 'Kanca Fırlatıcı', en: 'Grapnel Launcher' },
+    desc: { tr: 'Karşı kenara kanca atar. Zindanlarda boşlukları geçer; dışarıda uzaktaki kaynağı çeker.',
+            en: 'Fires a hook to the far ledge. Crosses gaps in dungeons; pulls distant resources outside.' },
+    passive: 'grapnel' });
+
+  it('dev_torch', { cat: 'dev', value: 0, w: 0.9, icon: { s: 'lance', c: '#ff8f4d', c2: '#7a3a10' },
+    name: { tr: 'Termal Mızrak', en: 'Thermal Lance' },
+    desc: { tr: 'Yoğunlaştırılmış ısı huzmesi. Buz tıkaçlarını eritir; savaşta ısı hasarını artırır.',
+            en: 'A focused heat beam. Melts ice plugs; raises heat damage in combat.' },
+    passive: 'heat' });
+
+  it('dev_resonator', { cat: 'dev', value: 0, w: 0.6, icon: { s: 'comms', c: '#c79bff', c2: '#3a2070' },
+    name: { tr: 'Rezonatör', en: 'Resonator' },
+    desc: { tr: 'Kilit frekansını bulur, mührü titreşimle açar. Dışarıda gizli bölmeleri duyurur.',
+            en: 'Finds a lock’s frequency and shakes the seal open. Reveals hidden compartments outside.' },
+    passive: 'resonate' });
+
+  it('dev_magboot', { cat: 'dev', value: 0, w: 1.4, icon: { s: 'boot', c: '#8fd0ff', c2: '#25567f' },
+    name: { tr: 'Manyetik Pabuç', en: 'Mag Cleats' },
+    desc: { tr: 'Manyetik zemine kilitlenir. Rüzgâr ve eğim seni sürükleyemez.',
+            en: 'Locks to magnetic plating. Wind and slope cannot drag you.' },
+    passive: 'magnet' });
+
+  it('dev_phase', { cat: 'dev', value: 0, w: 0.7, icon: { s: 'shield', c: '#4df2c8', c2: '#0e6a55' },
+    name: { tr: 'Faz Bobini', en: 'Phase Coil' },
+    desc: { tr: 'Kısa süre madde fazını kaydırır. Enerji perdelerinden geçirir.',
+            en: 'Briefly shifts your phase. Carries you through energy curtains.' },
+    passive: 'phase' });
 
   /* --------------------------------------------------------------------- */
   const It = QW.Items = {

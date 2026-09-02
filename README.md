@@ -190,6 +190,49 @@ Asit Golemi, Kum Leviathanı, Spor Devi, Fırtına Harrier'ı. Her biri kendi
 direnç/zafiyet profiliyle savaşır ve yenildiğinde bir **Kuantum Çekirdeği
 parçası** düşürür. Beş parçayı enkazdaki yuvaya takmak oyunu bitirir.
 
+### Element ilişkileri · Type matchups
+Cep konsolu RPG'lerinin taktik derinliği tek bir okunabilir kuraldan gelir:
+**her yaratığın bir zafiyeti ve bir direnci vardır, oyuncu bunu savaşırken
+öğrenir ve bir dahakine doğru aleti getirir.** Dört element vardır — ısı,
+soğuk, elektrik, asit — ve dördünün de bir silahı vardır:
+
+| Silah | Element | Nereden |
+|---|---|---|
+| Plazma Kesici | Isı | başlangıç |
+| Ray Tabancası / Ark Mızrağı | Elektrik | Merkez İstasyon şeması |
+| Kriyo Şırıngası | Soğuk | Krank'tan şema (kablo + buz) |
+| Dağlama Tabancası | Asit | Eko'dan şema (asit + kart) |
+
+27 yaratığın 26'sında tanımlı bir zafiyet/direnç çifti vardır (Kuantum
+Yansıması bilerek dışarıdadır: aynadır, hiçbir elemente açık değildir).
+İlişki **sessizce uygulanmaz** — vuruş anında günlüğe "Isı çok etkili!" yazılır,
+ses değişir ve darbe efekti renk değiştirir (etkili: turkuaz ve ağır; dirençli:
+gri ve cılız). Bir kez görülen ilişki **kalıcı olarak deftere işlenir** ve Kask
+Kaydı panelinde ▲/▼ işaretleriyle görünür; oyuncunun ezberlemesi gerekmez.
+
+### Zindanlar · Dungeons
+Beş bölge hâkiminin her biri artık bir **kilit-anahtar zindanının** sonundadır.
+Zindan bir oda grafiğidir ve klasik "Zelda kalıbını" izler:
+
+1. Zindanın bir **cihazı** vardır (Kanca Fırlatıcı, Termal Mızrak, Rezonatör,
+   Manyetik Pabuç, Faz Bobini).
+2. Cihaz önce **bulmacalarla kendini öğretir**: o zindanın engel dili yalnızca
+   o cihazın açtığı engellerden kurulur — kanca zindanında çukur, buz
+   zindanında buz tıkacı. Çözümü olmayan bir engel hiç üretilmez.
+3. En sonunda **hâkim o cihazla yenilir**: her cihazın savaşta bir taktiği
+   vardır ve kendi zindanının hâkimine karşı 1,5–4,6 kat daha etkilidir.
+
+Üretim, Ocarina ilkesini uygular: kilitler rastgele kenarlara değil, girişten
+boss odasına giden **tek yol üzerine sırayla** konur ve i. kilidin anahtarı
+(i−1). kilidin açtığı alandadır. Böylece oyuncunun elinde aynı anda yalnızca
+tek bir açılabilir kilit bulunur — genel amaçlı anahtarı yanlış kapıya harcayıp
+kilitlenmek imkânsızdır. `QW.Dungeon.verify()` bunu bağımsızca kanıtlar:
+5 biyom × 300 tohum = **1500 zindanın 1500'ü çözülebilir**.
+
+Kasa bulmacaları odadan çıkınca **sıfırlanır** (klasik Zelda oda sıfırlaması) ve
+kasa kapı ağzına itilemez; kasayı kurtarılamaz bir yere itip kendini kilitlemek
+mümkün değildir. Giriş odasının güneyinde her zaman bir **çıkış** vardır.
+
 ### Çevresel anlatım · Environmental storytelling
 Oyun sana ne yapman gerektiğini söylemez. Enkazın etrafında yanıp sönen kırmızı
 oksijen panelleri aciliyeti anlatır; rüzgârın taşıdığı mekanik bir ninni seni
@@ -300,10 +343,11 @@ js/
     crafting.js             Üretim, şema kilitleri, multimetre mini-oyunu
     vehicles.js             Rover ve İHA
     entities.js             Gezinen düşmanlar, doğma/silinme
-    combat.js               Sıra tabanlı savaş motoru
+    combat.js               Sıra tabanlı savaş motoru, element ilişkileri
+    dungeon.js              Kilit-anahtar zindan üreteci + çözülebilirlik kanıtı
     quests.js               Görev motoru (olay tabanlı)
   ui/                       HUD, diyalog kutusu, tam ekran paneller
-  scenes/                   boot · intro · creator · overworld · hologram · battle
+  scenes/                   boot · intro · creator · overworld · hologram · battle · dungeon
   main.js                   Açılış, oyun durumu, ölüm ve final
 ```
 
@@ -350,9 +394,10 @@ Oyun tasarımı literatüründeki ölçütler nereye oturuyor — tahmin değil,
 
 | Ölçüt | Önce | Sonra | Yöntem |
 |---|---|---|---|
-| **Siluet ayırt ediciliği** — en karışabilir yaratık çifti (IoU) | 0.91 | **0.75** | Blackout testi: her yaratık alfa maskesine indirgenip ikili Jaccard benzerliği ölçüldü |
-| Riskli çift sayısı (IoU > 0.75) | 10 | **2** | aynı |
-| Ortalama ikili IoU | 0.511 | **0.468** | aynı |
+| **Siluet ayırt ediciliği** — en karışabilir yaratık çifti (IoU) | 1.00 | **0.754** | Blackout testi: her yaratık alfa maskesine indirgenip ikili Jaccard benzerliği ölçüldü |
+| Riskli çift sayısı (IoU > 0.75) | 29 | **1** | aynı (351 çift) |
+| Ortalama ikili IoU | 0.525 | **0.454** | aynı |
+| **Tanımsız siluete düşen yaratık** | 7 | **0** | kadroyu dolduran 7 yaratık `crawler` siluetine düşüyordu; her birine kendi gövde hattı verildi |
 | **Zayıf nokta çarpanı** — bilgi / radar / sinerji | 1.6 (tek) | **1.25 / 1.6 / 2.3** | Savaş motorunda ölçülen hasar |
 | **Adaptasyon** — 3 yenilgi sonrası hasar artışı | yok | **+%57** | 200 vuruşluk ortalama |
 | **Yük biriktirme** — 3 tur beklemenin getirisi | yok | **×1.76** | Anlık vs biriktirilmiş aşırı yükleme |
@@ -366,6 +411,13 @@ Oyun tasarımı literatüründeki ölçütler nereye oturuyor — tahmin değil,
 | **Biyom başına düşman türü** | 1–4 (kıyıda 1) | **3–5** | havuz sorgusu, 8 biyom |
 | **Kaçma başarısı** | %39 | **%62 (+her denemede %15)** | 200 deneme |
 | **Görev adım çeşitliliği** | 4 tür (21 adım) | **6 tür (30 adım)** | kill ve visit adımları artık kullanılıyor |
+| **Zindan çözülebilirliği** | — | **1500/1500** | 5 biyom × 300 tohum, durum tabanlı doğrulayıcı |
+| **Ulaşılamayan zindan kapısı** | — | **0 / 15.150** | 7.875 odada, piksel çözünürlüklü yayılım, cihazsız en kötü durum |
+| **Element ilişkisi kapsamı** | 11/27 yaratık | **26/27** | zafiyet ve direnç çiftinin ikisi de tanımlı |
+| **Oyuncunun erişebildiği element** | 2 (ısı, elektrik) | **4** | kriyo ve dağlama silahları eklendi |
+| **Cihazın kendi hâkimine üstünlüğü** | — | **×1,5 – ×4,6** | 40 savaş ortalaması, kendi hâkimi vs yabancı hâkim |
+| **Dar geçit başarısı** (köşe kesme) | %77,7 | **%86,7** | 211 rastgele 10-tile'lık geçiş, aynı tohum, oyunun kendi çarpışmasıyla |
+| **Duvara sürtme oranı** | %1,5 | **%0,8** | aynı koşu, hareketsiz kalan kare oranı |
 
 Siluet testi `scratchpad/silhouette.js` mantığıyla tekrar üretilebilir: her
 yaratık 24×16 tuvale çizilir, alfa > 40 olan pikseller siluet sayılır ve tüm

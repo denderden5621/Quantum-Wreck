@@ -254,6 +254,16 @@
 
     /* Anlatı hâkimleri için savaş sonrası sahne */
     epilogue(bossId) {
+      /* Zindan hâkimi yenildiyse zindan kapanır ve oyuncu dışarı çıkar */
+      const dgId = entity && entity.dungeon;
+      if (dgId) {
+        const dj = QW.Game.dungeons[dgId];
+        if (dj) {
+          dj.state.beaten = true;
+          QW.HUD.toast(QW.t('dg_cleared', { name: QW.L(dj.def.name) }), 'good');
+        }
+        setTimeout(() => { if (QW.Scenes.is('dungeon')) QW.Scenes.pop(); }, 700);
+      }
       if (bossId === 'boss_memory_alpha') {
         QW.Audio.stopMusic();
         QW.Audio.motif('grief');
@@ -284,9 +294,15 @@
     /* ---------------------------------------------------------------- */
     refresh() {
       const s = QW.Combat.s; if (!s) return;
+      /* Daha önce öğrenilen element ilişkileri isim satırında durur: doğru
+         aleti seçmek için oyuncunun paneli açması ya da ezberlemesi gerekmez. */
+      const mm = QW.Game.matchups(s.e.meta.id);
+      const mk = Object.keys(mm);
       el.eName.textContent = s.e.name + '  LV' + s.e.meta.lvl +
         (s.e.exposed > 0 ? '  [' + QW.Combat.weakName(s.e.meta.weak) + ']'
           : s.e.known ? '  (' + QW.Combat.weakName(s.e.meta.weak) + ')' : '') +
+        (mk.length ? '  ' + mk.map(k => (mm[k] > 1 ? '▲' : mm[k] <= 0.02 ? '×' : '▼')
+          + QW.Combat.elementName(k)).join(' ') : '') +
         (s.e.shield > 0 ? '  ⛨' + s.e.shield : '');
       el.eFill.style.width = (s.e.hp / s.e.hpMax * 100).toFixed(1) + '%';
       el.selfHp.style.width = (QW.Player.hp / QW.Player.hpMax * 100).toFixed(1) + '%';
@@ -319,8 +335,14 @@
           const S = QW.Pixel.Screen;
           if (s.fx.kind === 'hit') {
             FX.flashE = 1;
-            impact(S.w / 2, S.h * (S.portrait ? 0.32 : 0.28),
-              s.fx.crit ? 1.0 : 0.45, s.fx.crit ? '#ffd166' : '#ffffff');
+            /* Element isabeti darbenin RENGİNDEN ve ağırlığından okunur:
+               oyuncu günlüğü okumadan da doğru aleti seçtiğini anlar. */
+            const eff = s.fx.eff;
+            const pw = s.fx.crit ? 1.0 : eff === 'super' ? 0.85 : eff === 'weakhit' ? 0.2 : eff === 'immune' ? 0.05 : 0.45;
+            const col = s.fx.crit ? '#ffd166'
+              : eff === 'super' ? '#4df2c8'
+              : eff === 'weakhit' || eff === 'immune' ? '#6b7590' : '#ffffff';
+            impact(S.w / 2, S.h * (S.portrait ? 0.32 : 0.28), pw, col);
           } else if (s.fx.kind === 'phit') {
             FX.flashP = 1;
             FX.shake = 5; FX.shakeT = 0.28; FX.stop = 0.06;

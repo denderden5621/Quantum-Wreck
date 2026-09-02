@@ -331,6 +331,58 @@
              en: 'This is not a battle. It is chess played against your own moves.' }
   });
 
+  /* ------------------------------------------------------------------
+   * ELEMENT İLİŞKİLERİ
+   *
+   * Klasik cep konsolu RPG'lerinin taktik derinliği tek bir okunabilir
+   * kuraldan gelir: her yaratığın bir zafiyeti ve bir direnci VARDIR, oyuncu
+   * bunu savaşırken öğrenir ve bir dahakine doğru aleti getirir. Burada her
+   * düşmana bu çifti veriyoruz; açıkça tanımlanmış olanlar korunur.
+   *   vuln   : çarpan (>1 fazla hasar)
+   *   resist : 0..1 arası azaltma oranı (1 = tamamen bağışık)
+   * ------------------------------------------------------------------ */
+  const MATCH = {
+    /* mekanik/hurda gövdeler: ark akımı devrelerini yakar, ısı iş görmez */
+    scrap_crawler:      { vuln: { shock: 1.5 }, resist: { heat: 0.35 } },
+    husk_drone:         { vuln: { shock: 1.6 }, resist: { cold: 0.4 } },
+    shard_golem:        { vuln: { heat: 1.5 }, resist: { shock: 0.5 } },
+    drift_husk:         { vuln: { shock: 1.4 }, resist: { acid: 0.4 } },
+    salvage_wraith:     { vuln: { shock: 1.5 }, resist: { heat: 0.4 } },
+    /* camsı/kabuklu: termal şok kabuğu çatlatır, elektrik iletmez */
+    glass_hopper:       { vuln: { cold: 1.6 }, resist: { shock: 0.5 } },
+    ice_mite:           { vuln: { heat: 1.5 }, resist: { cold: 0.8 } },
+    frost_lurker:       { vuln: { heat: 1.6 }, resist: { cold: 0.9 } },
+    tide_crab:          { vuln: { heat: 1.4 }, resist: { acid: 0.35 } },
+    scree_runner:       { vuln: { cold: 1.4 }, resist: { heat: 0.3 } },
+    /* organik/etli: ateş ve asit yakar, soğuk yalnızca yavaşlatır */
+    rad_jackal:         { vuln: { heat: 1.5 }, resist: { shock: 0.3 } },
+    mire_stalker:       { vuln: { heat: 1.5 }, resist: { acid: 0.6 } },
+    salt_wader:         { vuln: { acid: 1.4 }, resist: { cold: 0.35 } },
+    canyon_shrike:      { vuln: { shock: 1.4 }, resist: { cold: 0.3 } },
+    /* mantar/spor: kuruyup yanar, asidi umursamaz */
+    spore_walker:       { vuln: { heat: 1.6 }, resist: { acid: 0.7 } },
+    glacier_stalk:      { vuln: { heat: 1.4 }, resist: { cold: 1 } },
+    bog_lantern:        { vuln: { cold: 1.5 }, resist: { heat: 0.5 } },
+    void_moth:          { vuln: { cold: 1.5 }, resist: { shock: 0.4 } },
+    /* asit hattı: kendi elementine bağışık, soğukta katılaşır */
+    acid_leech:         { vuln: { cold: 1.5 }, resist: { acid: 1 } },
+    /* hâkimler — zaten tanımlı olanlara dokunulmaz, eksikler tamamlanır */
+    boss_ice_worm:      { vuln: { heat: 1.6 }, resist: { cold: 1 } },
+    boss_acid_golem:    { vuln: { cold: 1.5 }, resist: { acid: 1 } },
+    boss_sand_leviathan:{ vuln: { shock: 1.5 }, resist: { heat: 0.6 } },
+    boss_spore_titan:   { vuln: { heat: 1.4 }, resist: { acid: 0.7 } },
+    boss_storm_harrier: { vuln: { shock: 1.3 }, resist: { cold: 0.5 } },
+    boss_memory_alpha:  { vuln: { shock: 1.4 }, resist: { heat: 0.4 } },
+    boss_lost_leviathan:{ vuln: { cold: 1.4 }, resist: { acid: 1 } }
+    /* boss_quantum_echo bilerek dışarıda: aynadır, hiçbir elemente açık değil */
+  };
+  Object.keys(MATCH).forEach(id => {
+    const e = E[id]; if (!e) return;
+    const m = MATCH[id];
+    if (m.vuln) { e.vuln = e.vuln || {}; Object.keys(m.vuln).forEach(k => { if (!e.vuln[k]) e.vuln[k] = m.vuln[k]; }); }
+    if (m.resist) { e.resist = e.resist || {}; Object.keys(m.resist).forEach(k => { if (!e.resist[k]) e.resist[k] = m.resist[k]; }); }
+  });
+
   /* Hâkim ödülleri — hangi biyomun parçası düştüğünü işaretler */
   const BOSSES = Object.keys(E).filter(k => E[k].boss);
   const BIOME_BOSSES = Object.keys(E).filter(k => E[k].boss && E[k].biomeBoss);

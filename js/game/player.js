@@ -129,18 +129,39 @@
     } else { Pl.frame = 0; Pl._walkT = 0; }
   };
 
+  /* Ayak hizasında 6 piksellik çarpışma kutusu boş mu? */
+  function boxFree(nx, ny, caps) {
+    const pts = [[nx - 4, ny + 2], [nx + 4, ny + 2], [nx - 4, ny + 7], [nx + 4, ny + 7]];
+    for (const [px, py] of pts) {
+      if (!Wd.canWalk(Math.floor(px / Wd.TILE), Math.floor(py / Wd.TILE), caps)) return false;
+    }
+    return true;
+  }
+
   function tryMove(dx, dy, caps) {
     const nx = Pl.x + dx, ny = Pl.y + dy;
-    /* Ayak hizasında 6 piksellik çarpışma kutusu */
+    if (boxFree(nx, ny, caps)) { Pl.x = nx; Pl.y = ny; return; }
+
+    /* KÖŞE KESME — el konsolu aksiyon oyunlarının sessiz nezaketi: bir
+       köşeye sürtüyorsan ama birkaç piksel yana kayınca yol açılıyorsa oyun
+       seni oraya kaydırır. Duvardan geçirmez; yalnızca hizalamayı üstlenir. */
+    const slip = Math.min(5, Math.abs(dx || dy) + 1.6);
+    if (dx) {
+      for (const d of [slip, -slip]) {
+        if (boxFree(nx, ny + d, caps)) { Pl.x = nx; Pl.y = ny + d * 0.6; return; }
+      }
+    } else if (dy) {
+      for (const d of [slip, -slip]) {
+        if (boxFree(nx + d, ny, caps)) { Pl.x = nx + d * 0.6; Pl.y = ny; return; }
+      }
+    }
+
+    /* Gerçekten kapalı: engelin ne olduğunu oyuncuya söyle */
     const pts = [[nx - 4, ny + 2], [nx + 4, ny + 2], [nx - 4, ny + 7], [nx + 4, ny + 7]];
     for (const [px, py] of pts) {
       const tx = Math.floor(px / Wd.TILE), ty = Math.floor(py / Wd.TILE);
-      if (!Wd.canWalk(tx, ty, caps)) {
-        blockedFeedback(tx, ty, caps);
-        return;
-      }
+      if (!Wd.canWalk(tx, ty, caps)) { blockedFeedback(tx, ty, caps); return; }
     }
-    Pl.x = nx; Pl.y = ny;
   }
 
   let lastBlockMsg = 0;

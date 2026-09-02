@@ -14,8 +14,43 @@
     /* Kask kaydı: her karşılaşma ve her yenilgi kalıcı bilgiye dönüşür.
        "Game Over" yerine "Next Lesson" — kaybedilen run bir şey öğretir. */
     log: { seen: {}, died: {}, deaths: 0 },
+    /* Açılmış zindanların kalıcı durumu (anahtar, alınan eşya, açılan kapı) */
+    dungeons: {},
     atStationBench: false,
     started: false
+  };
+
+  /* ------------------------------------------------------------------
+   * ZİNDANLAR
+   * ---------------------------------------------------------------- */
+  G.enterDungeon = function (poi) {
+    const def = QW.Dungeon.def(poi.biome);
+    if (!def) return;
+    let dj = G.dungeons[def.id];
+    if (!dj) {
+      dj = QW.Dungeon.generate(poi.biome, G.seed);
+      const chk = QW.Dungeon.verify(dj);
+      if (!chk.ok) {                      // olmamalı; olursa yeniden üret
+        for (let i = 1; i <= 8 && !chk.ok; i++) {
+          dj = QW.Dungeon.generate(poi.biome, (G.seed + i * 7919) >>> 0);
+          Object.assign(chk, QW.Dungeon.verify(dj));
+        }
+      }
+      /* Kayıttan gelen ilerleme varsa geri yükle */
+      const saved = G._dungeonState && G._dungeonState[def.id];
+      if (saved) {
+        Object.assign(dj.state, saved);
+        /* Alınmış eşyalar odalardan düşürülür */
+        dj.rooms.forEach(r => { r.plateOn = false; });
+      }
+      G.dungeons[def.id] = dj;
+    }
+    G.dungeonPoi = poi.id;
+    QW.Scenes.push('dungeon', { dungeon: dj });
+  };
+
+  G.leaveDungeon = function () {
+    QW.Scenes.pop();
   };
 
   /* ------------------------------------------------------------------
@@ -44,6 +79,28 @@
     return Math.min(0.25, d * 0.10 + Math.floor(seen / 3) * 0.05);
   };
 
+  /* ------------------------------------------------------------------
+   * ÖĞRENİLEN ELEMENT İLİŞKİLERİ
+   * Klasik cep konsolu RPG'sinin çekirdek döngüsü: karşılaş -> öğren ->
+   * bir dahakine doğru aletle gel. Oyuncunun aklında tutmasını beklemiyoruz;
+   * bir kez gördüğü ilişki deftere kalıcı olarak yazılır ve arşivde görünür.
+   * ---------------------------------------------------------------- */
+  G.learnMatchup = function (enemyId, element, eff) {
+    if (!enemyId || !element) return;
+    if (!G.log.match) G.log.match = {};              // eski kayıt / kısmi durum
+    const rec = G.log.match[enemyId] || (G.log.match[enemyId] = {});
+    if (rec[element] !== undefined) return;                 // zaten biliniyor
+    rec[element] = eff;
+    const def = QW.Enemies.get(enemyId);
+    if (!def) return;
+    QW.HUD.toast(QW.t(eff > 1 ? 'match_learn_weak' : 'match_learn_res', {
+      name: QW.L(def.name), e: QW.Combat.elementName(element)
+    }), eff > 1 ? 'good' : 'info');
+  };
+
+  /* Bu düşman hakkında bilinen ilişkiler: { element: çarpan } */
+  G.matchups = function (enemyId) { return (G.log.match && G.log.match[enemyId]) || {}; };
+
   /* İki kez karşılaştıktan sonra zayıf nokta radarsız görünür */
   G.knowsWeakPoint = function (enemyId) {
     if (!enemyId) return false;
@@ -56,7 +113,8 @@
       id, def: QW.Enemies.get(id),
       seen: G.log.seen[id] || 0, died: G.log.died[id] || 0,
       adapt: Math.round(G.adaptation(id) * 100),
-      weak: G.knowsWeakPoint(id)
+      weak: G.knowsWeakPoint(id),
+      match: G.matchups(id)
     })).filter(e => e.def).sort((a, b) => b.seen - a.seen);
   };
 
@@ -84,7 +142,8 @@
     G.seed = (Math.random() * 0xffffffff) >>> 0;
     G.flags = {}; G.codex = {};
     G.stats = { kills: 0, crafted: 0, bosses: 0 };
-    G.log = { seen: {}, died: {}, deaths: 0 };
+    G.log = { seen: {}, died: {}, deaths: 0, match: {} };
+    G.dungeons = {};
     G.atStationBench = false; G._finaleRunning = false;
 
     QW.World.generate(G.seed);
@@ -111,7 +170,10 @@
     G.flags = d.flags || {};
     G.codex = d.codex || {};
     G.stats = d.stats || { kills: 0, crafted: 0, bosses: 0 };
-    G.log = d.log || { seen: {}, died: {}, deaths: 0 };
+    G.log = d.log || { seen: {}, died: {}, deaths: 0, match: {} };
+    if (!G.log.match) G.log.match = {};                     // eski kayıtlarla uyum
+    G.dungeons = {};   // zindanlar tohumdan yeniden üretilir, ilerleme aşağıda geri yüklenir
+    G._dungeonState = d.dungeonState || {};
 
     QW.World.load(d.world);
     QW.Player.load(d.player);

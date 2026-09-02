@@ -403,6 +403,12 @@
       const bits = [QW.t('log_seen', { n: e.seen })];
       if (e.died) bits.push(QW.t('log_died', { n: e.died }));
       if (e.weak) bits.push(QW.Combat.weakName(e.def.weak));
+      /* Öğrenilen element ilişkileri — bir dahakine hangi aleti getireceğini
+         oyuncunun ezberlemesi gerekmesin. */
+      const mk = Object.keys(e.match || {});
+      bits.push(QW.t('log_match') + ': ' + (mk.length
+        ? mk.map(k => (e.match[k] > 1 ? '▲ ' : e.match[k] <= 0.02 ? '× ' : '▼ ') + QW.Combat.elementName(k)).join(' ')
+        : QW.t('log_match_none')));
       el.body.appendChild(row({
         iconEl: elm('div', 'ic'),
         title: QW.L(e.def.name) + '  LV' + e.def.lvl,

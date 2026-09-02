@@ -370,6 +370,96 @@
       '.....d...d......',
       '....d.....d.....',
       '...d.......d....'
+    ],
+    /* --------------------------------------------------------------
+     * Kadroyu dolduran yaratıklar. Bunlar daha önce tanımsız şekil
+     * adları taşıdığı için hepsi sessizce "crawler" siluetine düşüyordu;
+     * siluet testinde yedisi de birbiriyle bire bir aynı çıkıyordu.
+     * Her birine kendi okunabilir gövde hattı verildi.
+     * ------------------------------------------------------------ */
+    /* Gelgit Yengeci: geniş, alçak, iki iri kıskaç dışarı taşar */
+    crab: [
+      '..........',
+      'dd......dd',
+      'ddd....ddd',
+      '.daaaaaad.',
+      'daaeaaeaad',
+      'daaaaaaaad',
+      '.dbbbbbbd.',
+      'd.d.dd.d.d',
+      '..........'
+    ],
+    /* Tuz Yürüyeni: uzun bacaklı, ince ve yüksek — leylek silueti */
+    wader: [
+      '...dbbd...',
+      '..dbaabd..',
+      '..daeead..',
+      '...daad...',
+      '....aa....',
+      '....aa....',
+      '...d..d...',
+      '..d....d..',
+      '.d......d.'
+    ],
+    /* Sürüklenen Kabuk: köşeli, boş bir zırh — omuzları dik, içi çökük */
+    husk: [
+      '.dddddddd.',
+      'db......bd',
+      'da.eaae.ad',
+      'da.aaaa.ad',
+      'db.aaaa.bd',
+      '.d.aaaa.d.',
+      '.d.d..d.d.',
+      '.d.d..d.d.',
+      '..........'
+    ],
+    /* Buz Akarı: küçük, yuvarlak, dikenli — kompakt bir top */
+    mite: [
+      '..........',
+      '..d.dd.d..',
+      '..dbaabd..',
+      '.daeaaead.',
+      '.daaaaaad.',
+      '..dbaabd..',
+      '..d.dd.d..',
+      '..........',
+      '..........'
+    ],
+    /* Buzul Sapı: yerden yükselen tek ince sütun, tepesi şişkin */
+    stalk: [
+      '...daad...',
+      '..daaaad..',
+      '..daeead..',
+      '..dbaabd..',
+      '...daad...',
+      '....aa....',
+      '....aa....',
+      '...dbbd...',
+      '..dd..dd..'
+    ],
+    /* Bataklık Feneri: küresel gövde, altından sarkan flamalar */
+    lantern: [
+      '....dd....',
+      '..dbaabd..',
+      '.daeaaead.',
+      'daaaaaaaad',
+      'daaaaaaaad',
+      '.dbaaaabd.',
+      '..dbbbbd..',
+      '.d.d..d.d.',
+      'd...d...d.'
+    ],
+    /* Taşlık Koşucusu: öne eğik, uzun arka bacak — koşu duruşu */
+    runner: [
+      '.......dd.',
+      '.....ddaad',
+      '..dddaaead',
+      '.daaaaaadd',
+      'daaaaaad..',
+      '.dbbbbd...',
+      '.d..d.d...',
+      'd...d..d..',
+      '.......d..'
     ]
   };
 

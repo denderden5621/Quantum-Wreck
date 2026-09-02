@@ -30,7 +30,7 @@
       },
       p: {
         energy: ENERGY_MAX, shield: 0, focus: 0, distract: 0,
-        poison: 0, stun: 0, blind: 0, guard: 0
+        poison: 0, stun: 0, blind: 0, guard: 0, anchored: 0, phased: 0
       },
       turn: 1, boss, phase: 'player', log: [], over: null,
       fx: null, usedFlee: 0, cooldown: {},
@@ -167,6 +167,79 @@
         if (brittle) CB.log(QW.t('syn_brittle'));
       }
     },
+    /* ------------------------------------------------------------------
+     * ZİNDAN CİHAZI TAKTİKLERİ
+     *
+     * Klasik Zelda kalıbının kapanış halkası: zindanda bulduğun alet önce
+     * bulmacalarla kendini öğretir, sonunda O ZİNDANIN hâkimini yenmenin
+     * yolu olur. Cihaz her savaşta işe yarar; ama kendi hâkimine karşı
+     * belirgin biçimde daha güçlüdür ve oyun bunu açıkça söyler.
+     * ---------------------------------------------------------------- */
+    {
+      id: 'dev_torch', cost: 10, cd: 2, dev: 'dev_torch',
+      name: { tr: 'Termal mızrakla erit', en: 'Melt with the thermal lance' },
+      desc: { tr: 'Yoğun ısı huzmesi · donmuş zırhı söker', en: 'Focused heat beam · strips frozen armour' },
+      run(s) {
+        const home = intended(s, 'dev_torch');
+        CB.hit(s, home ? 2.4 : 1.5, 'heat', false);
+        s.e.def = Math.max(0, s.e.def - (home ? 8 : 3));
+        QW.Audio.sfx('explode');
+        CB.log(home ? QW.t('cb_dev_home') : QW.t('cb_dev_melt'));
+      }
+    },
+    {
+      id: 'dev_grapnel', cost: 9, cd: 2, dev: 'dev_grapnel',
+      name: { tr: 'Kancayla plakayı çek', en: 'Rip a plate with the grapnel' },
+      desc: { tr: 'Zırh plakasını söker · zayıf noktayı açar', en: 'Tears off a plate · exposes the weak point' },
+      run(s) {
+        const home = intended(s, 'dev_grapnel');
+        s.e.weakFound = true; s.e.exposed = home ? 99 : 2;
+        CB.hit(s, home ? 1.9 : 1.2, null, true);
+        QW.Audio.sfx('hit');
+        CB.log(home ? QW.t('cb_dev_home') : QW.t('cb_dev_pull'));
+      }
+    },
+    {
+      id: 'dev_resonator', cost: 11, cd: 3, dev: 'dev_resonator',
+      name: { tr: 'Rezonans frekansını bul', en: 'Find the resonant frequency' },
+      desc: { tr: 'Kabuğu kendi titreşimiyle çatlatır · kalkanı söker', en: 'Cracks the shell with its own frequency · strips shields' },
+      run(s) {
+        const home = intended(s, 'dev_resonator');
+        if (s.e.shield > 0) { CB.log(QW.t('syn_strip', { n: s.e.shield })); s.e.shield = 0; }
+        CB.hit(s, home ? 2.2 : 1.3, 'shock', true);
+        if (home || Math.random() < 0.5) { s.e.stun = Math.max(s.e.stun, 1); CB.log(QW.t('cb_stun', { name: s.e.name })); }
+        QW.Audio.sfx('glitch');
+        CB.log(home ? QW.t('cb_dev_home') : QW.t('cb_dev_res'));
+      }
+    },
+    {
+      id: 'dev_magboot', cost: 7, cd: 2, dev: 'dev_magboot',
+      name: { tr: 'Manyetik pabuçla kenetlen', en: 'Anchor with the mag cleats' },
+      desc: { tr: 'Savrulmazsın · bir tur boyunca isabetin garanti', en: 'You cannot be thrown · your hits land for a turn' },
+      run(s) {
+        const home = intended(s, 'dev_magboot');
+        s.p.guard = 1;
+        s.p.anchored = home ? 3 : 2;
+        s.p.energy = Math.min(ENERGY_MAX, s.p.energy + 6);
+        QW.Audio.sfx('ui');
+        CB.log(home ? QW.t('cb_dev_home') : QW.t('cb_dev_anchor'));
+        /* Kenetlendiğin an bütün ağırlığını darbeye verebilirsin */
+        CB.hit(s, home ? 1.9 : 1.1, null, false);
+      }
+    },
+    {
+      id: 'dev_phase', cost: 12, cd: 3, dev: 'dev_phase',
+      name: { tr: 'Faz bobinini boşalt', en: 'Discharge the phase coil' },
+      desc: { tr: 'Kısa süre maddesizsin · gelen darbe boşa gider, sen vurursun',
+              en: 'Briefly immaterial · the incoming blow passes through and you strike' },
+      run(s) {
+        const home = intended(s, 'dev_phase');
+        s.p.phased = home ? 2 : 1;
+        CB.hit(s, home ? 2.0 : 1.25, null, true);
+        QW.Audio.sfx('scan');
+        CB.log(home ? QW.t('cb_dev_home') : QW.t('cb_dev_phase'));
+      }
+    },
     {
       id: 'guard', cost: 4, cd: 0,
       name: { tr: 'Siper al', en: 'Take cover' },
@@ -180,6 +253,15 @@
     }
   ];
 
+  /* Bu cihaz, karşındaki hâkimin zindanına mı ait? */
+  function intended(s, devId) {
+    const D = QW.Dungeon; if (!D || !s.e.meta.boss) return false;
+    return Object.keys(D.DUNGEONS).some(b => {
+      const d = D.DUNGEONS[b];
+      return d.boss === s.e.meta.id && D.DEVICES[d.device] && D.DEVICES[d.device].id === devId;
+    });
+  }
+
   function weakName(w) {
     const M = {
       core:   { tr: 'ÇEKİRDEK', en: 'CORE' },
@@ -191,6 +273,15 @@
     return QW.L(M[w] || M.core);
   }
   CB.weakName = weakName;
+
+  const ELEMENTS = {
+    heat:  { tr: 'Isı',     en: 'Heat' },
+    cold:  { tr: 'Soğuk',   en: 'Cold' },
+    shock: { tr: 'Elektrik', en: 'Shock' },
+    acid:  { tr: 'Asit',    en: 'Acid' }
+  };
+  CB.elementName = e => (ELEMENTS[e] ? QW.L(ELEMENTS[e]) : e);
+  CB.elements = () => Object.keys(ELEMENTS);
 
   /* Taktiğin kullanılabilirliği */
   CB.tacticState = function (t) {
@@ -220,6 +311,8 @@
     /* İsabet — stres, körlük ve düşmanın kaçınması etkiler */
     let acc = st.accuracy * (s.p.blind > 0 ? 0.65 : 1);
     if (s.e.evading > 0) acc *= 0.55;
+    /* Manyetik pabuç: zemine kenetliyken savrulmazsın, atışın kaymaz */
+    if (s.p.anchored > 0) acc = 1;
     if (Math.random() > acc) {
       QW.Audio.sfx('back');
       CB.log(QW.t('cb_miss', { a: QW.Player.name }));
@@ -232,10 +325,28 @@
     if (!ignoreDef) dmg -= s.e.def * 0.55;
     if (s.e.defending > 0) dmg *= 0.5;
 
-    /* Element ilişkileri — direnç ve zafiyet düşman tanımından gelir */
+    /* Element ilişkileri — direnç ve zafiyet düşman tanımından gelir.
+       Çarpan sessizce uygulanmaz: klasiklerin taktik derinliği, oyuncunun
+       doğru aleti seçtiğini ANINDA anlamasından gelir. */
     const m = s.e.meta;
-    if (element && m.resist && m.resist[element]) dmg *= (1 - m.resist[element]);
-    if (element && m.vuln && m.vuln[element]) dmg *= m.vuln[element];
+    let eff = 1;
+    if (element && m.resist && m.resist[element]) eff *= (1 - m.resist[element]);
+    if (element && m.vuln && m.vuln[element]) eff *= m.vuln[element];
+    dmg *= eff;
+    if (element) {
+      if (eff <= 0.02) {
+        s.eff = 'immune'; QW.Audio.sfx('deny');
+        CB.log(QW.t('cb_immune', { b: s.e.name, e: CB.elementName(element) }));
+      } else if (eff < 0.85) {
+        s.eff = 'weakhit'; QW.Audio.sfx('back');
+        CB.log(QW.t('cb_resisted', { b: s.e.name, e: CB.elementName(element) }));
+      } else if (eff > 1.15) {
+        s.eff = 'super'; QW.Audio.sfx('crit');
+        CB.log(QW.t('cb_super', { e: CB.elementName(element) }));
+      } else s.eff = null;
+      /* Öğrenilen ilişki kalıcı olarak deftere işlenir */
+      if (eff !== 1) QW.Game.learnMatchup(m.id, element, eff);
+    } else s.eff = null;
 
     /* Zayıf nokta: radar tam açar, kask kaydı yalnızca yerini bildirir */
     if (s.e.exposed > 0) { dmg *= (s.syn && s.syn.weakMult) || 1.6; CB.log(QW.t('cb_weak')); }
@@ -259,7 +370,7 @@
     }
 
     s.e.hp = Math.max(0, s.e.hp - dmg);
-    s.fx = { kind: 'hit', t: 0.35, n: dmg, crit: !!crit };
+    s.fx = { kind: 'hit', t: 0.35, n: dmg, crit: !!crit, eff: s.eff };
     CB.log(crit + QW.t('cb_hit', { a: QW.Player.name, b: s.e.name, n: dmg }));
     return dmg;
   };
@@ -270,7 +381,7 @@
   CB.playerAttack = function () {
     const s = CB.s; if (!s || s.phase !== 'player') return;
     const wep = QW.Items.get(QW.Player.equip.weapon);
-    const element = wep && wep.id === 'arc_lance' ? 'shock' : wep && wep.id === 'rail_pistol' ? 'shock' : 'heat';
+    const element = (wep && QW.Items.get(wep.id) && QW.Items.get(wep.id).element) || 'heat';
     CB.remember(s, { kind: 'attack', element, name: wep ? QW.Items.name(wep.id) : '' });
     CB.hit(s, 1.0, element, false);
     CB.endPlayerTurn();
@@ -377,6 +488,13 @@
       case 'buff':   s.e.atk = Math.round(s.e.atk * 1.2); CB.log(QW.L({ tr: s.e.name + ' güçleniyor!', en: s.e.name + ' grows stronger!' })); break;
       case 'heal':   s.e.hp = Math.min(s.e.hpMax, s.e.hp + Math.round(s.e.hpMax * 0.1)); CB.log(QW.L({ tr: s.e.name + ' yenileniyor.', en: s.e.name + ' regenerates.' })); break;
       default: {
+        /* Faz bobini açıkken gelen darbe içinden geçer */
+        if (s.p.phased > 0) {
+          s.p.phased--;
+          QW.Audio.sfx('scan');
+          CB.log(QW.t('cb_phased', { a: s.e.name }));
+          break;
+        }
         if (Math.random() > s.e.accuracy) { CB.log(QW.t('cb_miss', { a: s.e.name })); break; }
         let dmg = s.e.atk * (mv.dmg || 1) * (0.85 + Math.random() * 0.3);
         dmg -= pst.def * 0.5;
@@ -481,6 +599,8 @@
     s.p.energy = Math.min(ENERGY_MAX, s.p.energy + ENERGY_REGEN);
     s.p.blind = Math.max(0, s.p.blind - 1);
     s.p.distract = Math.max(0, s.p.distract - 1);
+    s.p.anchored = Math.max(0, s.p.anchored - 1);
+    s.p.phased = Math.max(0, s.p.phased - 1);
     Object.keys(s.cooldown).forEach(k => { s.cooldown[k] = Math.max(0, s.cooldown[k] - 1); });
 
     if (s.p.poison > 0) {

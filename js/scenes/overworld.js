@@ -405,19 +405,20 @@
       }
 
       case 'lair': {
-        const def = QW.Enemies.get(poi.boss);
+        /* İn artık bir kapı değil, bir ZİNDANIN girişidir */
+        const dgDef = QW.Dungeon.def(poi.biome);
         if (QW.Game.flags['boss_' + poi.boss]) {
-          QW.Dialog.say([QW.L({ tr: 'İn boş. Yenilenin izleri hâlâ duruyor.', en: 'The lair is empty. The marks of the fallen remain.' })],
-            { name: QW.L(poi.name) });
+          QW.Dialog.say([QW.L({ tr: 'Zindan sessiz. Hâkimin izleri hâlâ duruyor.',
+                                en: 'The dungeon is quiet. The warden’s marks remain.' })],
+            { name: dgDef ? QW.L(dgDef.name) : QW.L(poi.name) });
           return;
         }
-        QW.Dialog.say([QW.L(def.desc), QW.t('cb_boss') + ': ' + QW.L(def.name)], {
-          name: QW.L(poi.name), sprite: null,
+        if (!dgDef) return;
+        QW.Dialog.say([QW.L(dgDef.name), QW.t('dg_outside')], {
+          name: QW.L(poi.name),
           choices: [
-            { label: QW.t('act_enter'), fn: () => {
-                const e = QW.Entities.spawnBossAt(poi);
-                if (e) QW.Scenes.push('battle', { entity: e, boss: true });
-              } },
+            { label: QW.t(QW.Game.dungeons[dgDef.id] ? 'dg_again' : 'dg_enter'),
+              fn: () => QW.Game.enterDungeon(poi) },
             { label: QW.t('back') }
           ]
         });

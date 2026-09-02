@@ -39,7 +39,9 @@
       { give: { cassette_mech: 2, cd_lens: 1 }, unlock: 'r_comms', once: true,
         label: { tr: 'Antika seti → İLETİŞİM MODÜLÜ ŞEMASI', en: 'Antique set → COMMS MODULE SCHEMATIC' } },
       { give: { cd_lens: 2, cassette_mech: 2, esp32: 1 }, get: { id: 'comms_module', n: 1 },
-        label: { tr: 'Tam set → Hazır iletişim modülü', en: 'Full set → Assembled comms module' } }
+        label: { tr: 'Tam set → Hazır iletişim modülü', en: 'Full set → Assembled comms module' } },
+      { give: { acid_sac: 3, pcb: 1 }, unlock: 'r_etchant', once: true,
+        label: { tr: 'Asit + kart → DAĞLAMA TABANCASI ŞEMASI', en: 'Acid + board → ETCHANT GUN SCHEMATIC' } }
     ],
     shop: [
       { id: 'esp32', price: 70, stock: 2 },
@@ -120,6 +122,8 @@
         label: { tr: 'Kablo x2 → ARAZİ ROVER\'I ŞEMASI', en: 'Cable x2 → TERRAIN ROVER SCHEMATIC' } },
       { give: { ti_wire: 3, ice_shard: 4 }, unlock: 'r_suit_thermal', once: true,
         label: { tr: 'Kablo + buz → TERMAL ZIRH ŞEMASI', en: 'Cable + ice → THERMAL ARMOUR SCHEMATIC' } },
+      { give: { ti_wire: 2, ice_shard: 6, quartz: 2 }, unlock: 'r_cryo', once: true,
+        label: { tr: 'Kablo + buz → KRİYO ŞIRINGASI ŞEMASI', en: 'Cable + ice → CRYO INJECTOR SCHEMATIC' } },
       { give: { ti_wire: 1, titanium: 2 }, get: { id: 'disc_brake', n: 1 },
         label: { tr: 'Kablo → Mekanik disk fren', en: 'Cable → Mechanical disc brake' } },
       { give: { ti_wire: 1, scrap: 3 }, get: { id: 'chainring', n: 1 },

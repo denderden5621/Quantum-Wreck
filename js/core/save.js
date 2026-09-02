@@ -51,7 +51,13 @@
       codex: G.codex,
       flags: G.flags,
       stats: G.stats,
-      log: G.log
+      log: G.log,
+      /* Zindan yerleşimi tohumdan yeniden üretilir; yalnızca ilerleme saklanır */
+      dungeonState: (function () {
+        const out = {};
+        Object.keys(G.dungeons || {}).forEach(k => { out[k] = G.dungeons[k].state; });
+        return out;
+      })()
     };
   };
 
