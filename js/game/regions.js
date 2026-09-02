@@ -125,6 +125,23 @@
 
   function romans(n) { return ['', 'I', 'II', 'III', 'IV', 'V', 'VI'][n] || String(n); }
 
+  /* Geçitten bölge merkezine doğru sabit uzunlukta koridor parçası */
+  const CORR_LEN = 26, CORR_R = 2.2;
+  function dirSeg(ps, cell) {
+    const dx = cell.x - ps.x, dy = cell.y - ps.y;
+    const len = Math.hypot(dx, dy) || 1;
+    return { x: ps.x, y: ps.y, ex: ps.x + dx / len * CORR_LEN, ey: ps.y + dy / len * CORR_LEN };
+  }
+
+  /* Nokta-doğru parçası mesafesi */
+  function segDist(px, py, s) {
+    const dx = s.ex - s.x, dy = s.ey - s.y;
+    const L2 = dx * dx + dy * dy;
+    let t = L2 ? ((px - s.x) * dx + (py - s.y) * dy) / L2 : 0;
+    t = t < 0 ? 0 : t > 1 ? 1 : t;
+    return Math.hypot(px - (s.x + t * dx), py - (s.y + t * dy));
+  }
+
   /* Hücre araması her tile için pahalı olurdu; kaba bir ızgara önbelleklenir */
   function buildGrid(W, H) {
     const CS = R._cell;
@@ -180,6 +197,12 @@
         tr: QW.L(R.cells[ps.a].name) + ' – ' + QW.L(R.cells[ps.b].name) + ' Geçidi',
         en: QW.L(R.cells[ps.a].name) + ' – ' + QW.L(R.cells[ps.b].name) + ' Pass'
       };
+      /* Bir geçit yalnızca ortasını yürünebilir yapmakla iş görmez: dağın
+         içinde kapalı bir ada olarak kalabilir. Bu yüzden her geçitten iki
+         bölgenin merkezine doğru birer koridor oyulur — geçit gerçekten
+         iki tarafı bağlar. */
+      const A = R.cells[ps.a], B = R.cells[ps.b];
+      ps.corr = [dirSeg(ps, A), dirSeg(ps, B)];
       R.passes.push(ps);
     });
   }
@@ -208,17 +231,23 @@
 
   function buildPassGrid() {
     const g = new Map();
+    const add = (gx, gy, p) => {
+      const k = gx + ',' + gy;
+      if (!g.has(k)) g.set(k, []);
+      if (g.get(k).indexOf(p) < 0) g.get(k).push(p);
+    };
     R.passes.forEach(p => {
-      const rad = p.r + 2;
-      const x0 = Math.floor((p.x - rad) / PCS), x1 = Math.floor((p.x + rad) / PCS);
-      const y0 = Math.floor((p.y - rad) / PCS), y1 = Math.floor((p.y + rad) / PCS);
-      for (let gy = y0; gy <= y1; gy++) {
-        for (let gx = x0; gx <= x1; gx++) {
-          const k = gx + ',' + gy;
-          if (!g.has(k)) g.set(k, []);
-          g.get(k).push(p);
+      /* Geçidin kendisi + iki koridorun kapsadığı hücreler */
+      const boxes = [{ x0: p.x - p.r - 2, y0: p.y - p.r - 2, x1: p.x + p.r + 2, y1: p.y + p.r + 2 }];
+      (p.corr || []).forEach(s2 => boxes.push({
+        x0: Math.min(s2.x, s2.ex) - CORR_R - 2, y0: Math.min(s2.y, s2.ey) - CORR_R - 2,
+        x1: Math.max(s2.x, s2.ex) + CORR_R + 2, y1: Math.max(s2.y, s2.ey) + CORR_R + 2
+      }));
+      boxes.forEach(b => {
+        for (let gy = Math.floor(b.y0 / PCS); gy <= Math.floor(b.y1 / PCS); gy++) {
+          for (let gx = Math.floor(b.x0 / PCS); gx <= Math.floor(b.x1 / PCS); gx++) add(gx, gy, p);
         }
-      }
+      });
     });
     R._pgrid = g;
   }
@@ -230,6 +259,22 @@
     for (let i = 0; i < list.length; i++) {
       const p = list[i];
       if (U.dist(tx, ty, p.x, p.y) <= p.r + (extra || 0)) return p;
+    }
+    return null;
+  };
+
+  /* Geçit ağzı ya da ona bağlı koridor üstünde miyiz? Bu tile'lar daima açıktır. */
+  R.corridorAt = function (tx, ty) {
+    if (!R._pgrid) return null;
+    const list = R._pgrid.get(Math.floor(tx / PCS) + ',' + Math.floor(ty / PCS));
+    if (!list) return null;
+    for (let i = 0; i < list.length; i++) {
+      const p = list[i];
+      if (U.dist(tx, ty, p.x, p.y) <= p.r) return p;
+      const c = p.corr;
+      if (c) {
+        for (let j = 0; j < c.length; j++) if (segDist(tx, ty, c[j]) <= CORR_R) return p;
+      }
     }
     return null;
   };

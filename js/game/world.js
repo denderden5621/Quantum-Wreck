@@ -36,7 +36,7 @@
   const Wd = QW.World = {
     TILE, CH, CHPX, W, H, T, BIOMES,
     seed: 0, spawn: { x: 0, y: 0 },
-    pois: [], nodes: {}, harvested: {}, discovered: {},
+    pois: [], nodes: {}, harvested: {}, discovered: {}, looted: {},
     day: 1, time: 0.32,      // 0..1 (0 = gece yarısı, 0.5 = öğlen)
     _chunks: new Map(), _order: [],
     _biomeCache: new Map()
@@ -55,7 +55,7 @@
     nRidge = U.Perlin(Wd.seed ^ 0xc2b2ae35);
     nDet   = U.Perlin(Wd.seed ^ 0x27d4eb2f);
     Wd._chunks.clear(); Wd._order.length = 0; Wd._biomeCache.clear();
-    Wd.harvested = {}; Wd.discovered = {}; Wd.beacons = [];
+    Wd.harvested = {}; Wd.discovered = {}; Wd.beacons = []; Wd.looted = {};
     Wd.day = 1; Wd.time = 0.32;
     /* Bölgeler biyomlardan ÖNCE üretilir: biyom seçimi onların sapmasını okur */
     QW.Regions.generate(Wd.seed, W, H);
@@ -250,14 +250,12 @@
     const edge = Math.min(tx, ty, W - 1 - tx, H - 1 - ty) / 26;
     const ee = e * U.clamp(edge, 0, 1);
 
-    /* Geçitler: bölgeler arasındaki duvarı delen tek yol — daima yürünür */
-    const pass = QW.Regions.passNear(tx, ty, 0);
+    /* Geçitler ve onlara bağlı koridorlar: duvarı delen yol, daima yürünür */
+    const pass = QW.Regions.corridorAt(tx, ty);
     let b;
     if (pass) {
-      const d = U.dist(tx, ty, pass.x, pass.y);
-      if (d <= pass.r) b = (ee < 0.30) ? BIOMES.shore : BIOMES.canyon;
-      else b = null;
-      if (b) { cache(key, b); return b; }
+      b = (ee < 0.30) ? BIOMES.shore : BIOMES.canyon;
+      return cache(key, b);
     }
     if (ee < 0.28) b = BIOMES.sea;
     else if (ee < 0.325) b = BIOMES.shore;
@@ -391,6 +389,60 @@
     return true;
   };
 
+  /* ------------------------------------------------------------------
+   * SİNYAL AĞI (hızlı seyahat)
+   *
+   * 832x832'lik bir haritada iki uç arasını yürümek altı dakika sürüyordu.
+   * Keşfedilmiş yerleşimler ve kurulan fenerler bir ağ oluşturur; aralarında
+   * yolculuk bedavaya değildir: saat ilerler, dayanıklılık gider, yolda
+   * pusuya düşme ihtimali vardır.
+   * ---------------------------------------------------------------- */
+  Wd.travelNodes = function () {
+    return Wd.pois.filter(p =>
+      (p.kind === 'wreck' || p.kind === 'station' || p.kind === 'city' ||
+       p.kind === 'camp' || p.kind === 'oasis') &&
+      Wd.isDiscovered(p.x, p.y) &&
+      !(p.kind === 'oasis' && !p.healed));
+  };
+
+  /* Yolculuk maliyeti: mesafeye göre saat + dayanıklılık */
+  Wd.travelCost = function (poi) {
+    const t = QW.Player.tilePos();
+    const d = U.dist(t.tx, t.ty, poi.x, poi.y);
+    const caps = QW.Vehicles.caps();
+    const speedup = caps.speed && caps.speed > 1 ? caps.speed : 1;
+    const hours = Math.max(1, Math.round(d / 26 / speedup));
+    const stamina = Math.round(d / 5 / speedup);
+    return { d: Math.round(d), hours, stamina };
+  };
+
+  Wd.travelTo = function (poi) {
+    const cost = Wd.travelCost(poi);
+    if (QW.Player.sta < cost.stamina * 0.5) {
+      QW.HUD.toast(QW.t('ft_tired'), 'bad');
+      QW.Audio.sfx('deny');
+      return false;
+    }
+    QW.Player.x = poi.x * TILE + 8;
+    QW.Player.y = (poi.y + 2) * TILE + 8;
+    QW.Player.sta = Math.max(0, QW.Player.sta - cost.stamina);
+    QW.Player.addStress(cost.hours * 0.8);
+    /* Saat ilerler; gün dönerse gün sayacı da artar */
+    Wd.time += cost.hours / 24;
+    while (Wd.time >= 1) { Wd.time -= 1; Wd.day++; QW.bus.emit('newday', Wd.day); }
+    Wd.discover(poi.x, poi.y, 12);
+    QW.Entities.clearEnemies();
+    QW.Audio.sfx('scan');
+    QW.HUD.toast(QW.t('ft_done', { name: QW.L(poi.name), h: cost.hours }), 'good');
+    /* Uzun yolculukta pusu riski */
+    if (cost.d > 60 && Math.random() < 0.22) {
+      QW.HUD.toast(QW.t('ft_danger'), 'bad');
+      QW.Player.damage(6 + cost.hours, null);
+    }
+    QW.Save.write(true);
+    return true;
+  };
+
   /* İletişim modülü uzak kampların yerini açar */
   Wd.revealCamps = function () {
     let n = 0;
@@ -401,6 +453,60 @@
       }
     });
     return n;
+  };
+
+  /* ------------------------------------------------------------------
+   * YOL ÜSTÜ İŞARETLERİ
+   *
+   * 66 POI'yi 692.000 tile'a yaymak yürüyüşü boşaltıyordu (dakikada iki
+   * ilgi noktası). Bunlar POI listesine girmeyen, tile karmasından türeyen
+   * küçük sahnelerdir: düşmüş bir keşif direği, kemik yığını, terk edilmiş
+   * kamp, sinyal önbelleği. Sık, ucuz ve her biri kısa bir buluş.
+   * ---------------------------------------------------------------- */
+  const LANDMARKS = [
+    { id: 'marker',  loot: ['scrap', 'copper'],                    n: [1, 2],
+      name: { tr: 'Keşif Direği', en: 'Survey Marker' } },
+    { id: 'bones',   loot: ['bio_fiber', 'acid_sac'],              n: [1, 3],
+      name: { tr: 'Kemik Yığını', en: 'Bone Pile' } },
+    { id: 'camp',    loot: ['ration', 'scrap', 'power_cell'],      n: [1, 2],
+      name: { tr: 'Terk Edilmiş Kamp', en: 'Abandoned Camp' } },
+    { id: 'cache',   loot: ['pcb', 'quartz', 'silicon', 'copper'], n: [1, 2],
+      name: { tr: 'Sinyal Önbelleği', en: 'Signal Cache' } },
+    { id: 'mast',    loot: ['antenna', 'scrap', 'cd_lens'],        n: [1, 1],
+      name: { tr: 'Çökmüş Anten', en: 'Collapsed Mast' } },
+    { id: 'crate',   loot: ['power_cell', 'medkit', 'o2_canister'],n: [1, 2],
+      name: { tr: 'Kargo Sandığı', en: 'Cargo Crate' } }
+  ];
+
+  const LM_DENSITY = 0.005;    // ~1 / 200 tile — yürüyüşü noktalayacak sıklık
+
+  Wd.landmarkAt = function (tx, ty) {
+    const b = Wd.biomeAt(tx, ty);
+    if (b.t === T.WATER || b.t === T.ROCK || b.t === T.CHASM) return null;
+    if (U.hash2(tx, ty, Wd.seed + 5150) > LM_DENSITY) return null;
+    /* Enkazın hemen dibi öğretici alanı — orayı kalabalıklaştırma.
+       (Tüm POI listesini taramak chunk üretiminde tile başına 66 mesafe
+       hesabı demekti; ucuz bir sınır kontrolü yeterli.) */
+    const sp = Wd.spawn;
+    if (Math.abs(tx - sp.x) < 9 && Math.abs(ty - sp.y) < 9) return null;
+    const idx = Math.floor(U.hash2(tx, ty, Wd.seed + 6161) * LANDMARKS.length);
+    const def = LANDMARKS[Math.min(idx, LANDMARKS.length - 1)];
+    const key = tx + ',' + ty;
+    if (Wd.looted[key] !== undefined && Wd.day - Wd.looted[key] < 6) return null;
+    return { tx, ty, def };
+  };
+
+  Wd.lootLandmark = function (lm) {
+    const got = [];
+    const n = lm.def.n[0] + Math.floor(U.hash2(lm.tx, lm.ty, Wd.seed + 77) * (lm.def.n[1] - lm.def.n[0] + 1));
+    for (let i = 0; i < n; i++) {
+      const id = lm.def.loot[Math.floor(Math.random() * lm.def.loot.length)];
+      const cnt = (id === 'cd_lens' || id === 'antenna' || id === 'pcb') ? 1 : U.irange(1, 3);
+      if (QW.Inventory.add(id, cnt, true)) got.push(QW.Items.name(id) + ' x' + cnt);
+    }
+    Wd.looted[lm.tx + ',' + lm.ty] = Wd.day;
+    Wd.invalidate(lm.tx, lm.ty);
+    return got;
   };
 
   Wd.poiAt = function (tx, ty) {
@@ -485,6 +591,8 @@
       const tx = t0x + lx, ty = t0y + ly;
       const n = Wd.nodeAt(tx, ty);
       if (n) QW.Sprites.drawNode(ctx, lx * TILE, ly * TILE, n.item);
+      const lm = Wd.landmarkAt(tx, ty);
+      if (lm) QW.Sprites.drawLandmark(ctx, lx * TILE, ly * TILE, lm.def.id);
     }
     Wd.pois.forEach(p => {
       if (p.x >= t0x - 8 && p.x < t0x + CH + 8 && p.y >= t0y - 8 && p.y < t0y + CH + 8) {
@@ -736,7 +844,7 @@
   Wd.serialize = function () {
     return {
       seed: Wd.seed, spawn: Wd.spawn, day: Wd.day, time: Wd.time,
-      harvested: pruneHarvested(), disc: packDiscovered(),
+      harvested: pruneHarvested(), disc: packDiscovered(), looted: Wd.looted,
       beacons: Wd.beacons,
       pois: Wd.pois.map(p => ({ id: p.id, cleared: !!p.cleared, looted: !!p.looted, lootDay: p.lootDay || 0, healed: !!p.healed }))
     };
@@ -746,6 +854,7 @@
     Wd.spawn = d.spawn || Wd.spawn;
     Wd.day = d.day || 1; Wd.time = d.time || 0.32;
     Wd.harvested = d.harvested || {};
+    Wd.looted = d.looted || {};
     Wd.discovered = d.disc ? unpackDiscovered(d.disc) : (d.discovered || {});
     /* Kurulmuş kamp fenerlerini geri yükle */
     Wd.beacons = d.beacons || [];

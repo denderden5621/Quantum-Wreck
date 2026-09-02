@@ -315,7 +315,11 @@
       CB.log(QW.L({ tr: 'Bölge hâkiminden kaçılmaz.', en: 'There is no fleeing a warden.' }));
       return;
     }
-    const chance = 0.45 + QW.Player.stats().spd * 0.1 - s.e.meta.spd * 0.02;
+    /* Kaçmak bir yazı-tura değil, geçerli bir taktik olmalı: taban şans
+       yüksektir ve her başarısız deneme bir sonrakini kolaylaştırır. */
+    s.fleeTries = (s.fleeTries || 0) + 1;
+    const chance = 0.62 + QW.Player.stats().spd * 0.1 - s.e.meta.spd * 0.015
+                 + (s.fleeTries - 1) * 0.15;
     if (Math.random() < chance) {
       s.phase = 'over'; s.over = 'fled';
       CB.log(QW.t('cb_fled'));

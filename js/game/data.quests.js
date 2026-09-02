@@ -117,6 +117,75 @@
     steps: [{ type: 'boss', target: 'boss_storm_harrier', text: { tr: 'Fırtına Harrier\'ını yen', en: 'Defeat the Storm Harrier' } }],
     reward: { ec: 220, codex: 'c_boss_harrier' } });
 
+  /* ------------------------- SAHA GÖREVLERİ ---------------------------
+   * Motor kill/visit adımlarını destekliyordu ama tek bir görev kullanmıyordu;
+   * her şey "topla" ya da "boss yen"di. Bunlar avlanma, teslimat ve keşif
+   * ekseninde çeşitlilik getirir. */
+  q('q_hunt_swarm', {
+    field: true, repeatable: true,
+    name: { tr: 'Sürü Seyreltme', en: 'Thinning the Swarm' },
+    desc: { tr: 'Enkazın çevresi hurda sürüngeniyle doldu. Sayılarını azalt.',
+            en: 'Scrap crawlers have overrun the ground around the wreck. Cut their numbers.' },
+    steps: [{ type: 'kill', target: 'scrap_crawler', n: 6,
+      text: { tr: 'Hurda sürüngeni avla', en: 'Hunt scrap crawlers' } }],
+    reward: { ec: 55, items: { scrap: 6, repair_kit: 1 } }
+  });
+
+  q('q_hunt_night', {
+    field: true,
+    name: { tr: 'Gece Vardiyası', en: 'Night Shift' },
+    desc: { tr: 'Geceleri anomalinin kenarında bir şey uçuyor. Üçünü indir.',
+            en: 'Something flies at the edge of the anomaly after dark. Bring down three.' },
+    steps: [{ type: 'kill', target: 'void_moth', n: 3,
+      text: { tr: 'Boşluk güvesi avla (gece)', en: 'Hunt void moths (night)' } }],
+    reward: { ec: 120, items: { data_crystal: 2 }, codex: 'c_weather' }
+  });
+
+  q('q_hunt_shore', {
+    field: true,
+    name: { tr: 'Gelgit Hattı', en: 'The Tide Line' },
+    desc: { tr: 'Kıyıda basınç giysileri kıpırdıyor. İçlerindeki her neyse durdur.',
+            en: 'Pressure suits are stirring on the shore. Stop whatever is inside them.' },
+    steps: [{ type: 'kill', target: 'drift_husk', n: 4,
+      text: { tr: 'Sürüklenen kabuk avla', en: 'Hunt drift husks' } }],
+    reward: { ec: 100, items: { power_cell: 4, o2_canister: 2 } }
+  });
+
+  q('q_survey', {
+    field: true,
+    name: { tr: 'Kartografi', en: 'Cartography' },
+    desc: { tr: 'Kask haritası boş. Üç büyük yerleşimi de kendi gözünle gör.',
+            en: 'Your helmet map is blank. See all three great settlements with your own eyes.' },
+    steps: [
+      { type: 'visit', target: 'city_forge',  text: { tr: 'Ocak Şehri’ne git', en: 'Reach the Forge' } },
+      { type: 'visit', target: 'city_spire',  text: { tr: 'Buz Kulesi’ne git', en: 'Reach Icespire' } },
+      { type: 'visit', target: 'city_bazaar', text: { tr: 'Kum Pazarı’na git', en: 'Reach the Sand Bazaar' } }
+    ],
+    reward: { ec: 200, items: { comms_module: 1 }, codex: 'c_vehicles' }
+  });
+
+  q('q_delivery', {
+    field: true,
+    name: { tr: 'Kablo Borcu', en: 'A Debt in Cable' },
+    desc: { tr: 'Krank’ın istediği kabloyu Eko’ya götürmen gerekiyor — ikisi de birbiriyle konuşmuyor.',
+            en: 'Krank’s cable has to reach Eko — the two of them are not speaking.' },
+    steps: [
+      { type: 'collect', target: 'ti_wire', n: 3, text: { tr: 'Titanyum kablo çek', en: 'Draw titanium cable' } },
+      { type: 'visit', target: 'camp_eko', text: { tr: 'Eko’ya ulaştır', en: 'Deliver to Eko' } }
+    ],
+    reward: { ec: 140, items: { cassette_mech: 1, cd_lens: 1 } }
+  });
+
+  q('q_storm', {
+    field: true,
+    name: { tr: 'Fırtınada Ayakta', en: 'Standing in the Storm' },
+    desc: { tr: 'Bir fırtınayı sığınmadan atlat. Kuşamın buna dayanmalı.',
+            en: 'Ride out a storm without shelter. Your loadout has to hold.' },
+    steps: [{ type: 'flag', target: 'storm_survived',
+      text: { tr: 'Bir fırtınayı dışarıda atlat', en: 'Survive a storm in the open' } }],
+    reward: { ec: 160, items: { antirad: 3, coolant: 2 }, codex: 'c_weather' }
+  });
+
   /* ---------------------------- ANLATI HATTI --------------------------- */
   q('q_archive', {
     story: true,

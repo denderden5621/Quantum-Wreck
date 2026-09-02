@@ -114,6 +114,10 @@
     QW.bus.on('npc_met', npcId => {
       const def = QW.NPCs.get(npcId);
       if (def && def.quest) Q.start(def.quest);
+      /* Saha görevleri: NPC tanıştıkça sırayla açılır */
+      const field = QW.QuestDB.all().filter(id => QW.QuestDB.get(id).field);
+      const next = field.find(id => !Q.active[id] && !Q.done[id]);
+      if (next) Q.start(next);
     });
   };
 

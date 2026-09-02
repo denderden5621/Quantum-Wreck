@@ -564,6 +564,32 @@
     }
   };
 
+  /* Yol üstü işaretleri — küçük, tek tile'lık sahneler */
+  S.drawLandmark = function (ctx, x, y, id) {
+    const R = (dx, dy, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(x + dx, y + dy, w, h); };
+    switch (id) {
+      case 'marker':
+        R(7, 3, 2, 11, '#8a94a8'); R(4, 3, 8, 4, '#ffd166'); R(4, 3, 8, 1, '#fff0c0');
+        R(5, 13, 6, 2, '#3a404e'); break;
+      case 'bones':
+        R(3, 10, 10, 2, '#d8d0b8'); R(4, 8, 2, 3, '#d8d0b8'); R(9, 7, 2, 4, '#d8d0b8');
+        R(6, 6, 4, 3, '#e6e0cc'); R(6, 12, 4, 1, '#a89f88'); break;
+      case 'camp':
+        R(3, 8, 10, 6, '#2a2418'); R(3, 8, 10, 1, '#4a4028');
+        R(5, 4, 6, 4, '#3a3020'); R(6, 12, 4, 2, '#1c1810');
+        R(11, 5, 2, 8, '#5b6b8a'); break;
+      case 'cache':
+        R(4, 7, 9, 7, '#2c3550'); R(4, 7, 9, 1, '#4a5a80');
+        R(6, 9, 5, 3, '#4df2c8'); R(3, 5, 3, 3, '#8a94a8'); break;
+      case 'mast':
+        R(2, 11, 13, 2, '#5b6b8a'); R(4, 8, 2, 4, '#6b7b9a'); R(9, 6, 2, 6, '#6b7b9a');
+        R(7, 4, 6, 2, '#8a9ab8'); R(2, 13, 13, 1, '#3a4458'); break;
+      case 'crate':
+        R(3, 7, 10, 7, '#6a5a3a'); R(3, 7, 10, 2, '#8a7a4a');
+        R(3, 10, 10, 1, '#4a3f28'); R(6, 9, 4, 3, '#ffd166'); break;
+    }
+  };
+
   S.drawPoi = function (ctx, x, y, poi) {
     const R = (dx, dy, w, h, col) => { ctx.fillStyle = col; ctx.fillRect(x + dx, y + dy, w, h); };
     switch (poi.kind) {

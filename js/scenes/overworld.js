@@ -95,7 +95,7 @@
       P0.tick(dt, caps);
       QW.Vehicles.tick(dt, P0.moving);
       Wd.tickTime(dt);
-      QW.Weather.tick(dt, Wd.biomeKeyAt(tp.tx, tp.ty));
+      QW.Weather.tick(dt, Wd.biomeKeyAt(tp.tx, tp.ty), caps.inCamp);
       QW.Save.tick(dt);
 
       encounterLock = Math.max(0, encounterLock - dt);
@@ -255,6 +255,17 @@
       if (d < best) { best = d; interactTarget = { kind: 'node', node: n, label: QW.t('act_gather') + ': ' + QW.Items.name(n.item) }; }
     }
 
+    /* Yol üstü işaretleri */
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+      const lm = Wd.landmarkAt(t.tx + dx, t.ty + dy);
+      if (!lm) continue;
+      const d = Math.abs(dx) + Math.abs(dy);
+      if (d < best) {
+        best = d;
+        interactTarget = { kind: 'landmark', lm, label: QW.t('act_search') + ': ' + QW.L(lm.def.name) };
+      }
+    }
+
     /* POI */
     const poi = Wd.poiNear(t.tx, t.ty, 1.5);
     if (poi) {
@@ -316,6 +327,14 @@
       return;
     }
 
+    if (it.kind === 'landmark') {
+      const got = Wd.lootLandmark(it.lm);
+      QW.Audio.sfx('pickup');
+      if (got.length) QW.HUD.toast(QW.t('found') + ' ' + got.join(', '), 'good');
+      else QW.HUD.toast(QW.t('act_nothing'), 'info');
+      return;
+    }
+
     if (it.kind === 'node') {
       const n = it.node;
       QW.Inventory.add(n.item, n.n);
@@ -336,6 +355,7 @@
         break;
 
       case 'city': {
+        QW.Game.setFlag('visit_' + poi.id, true);
         const ids = poi.npcs || [];
         QW.Game.atStationBench = true;
         QW.Audio.fadeMusicTo('camp');
@@ -560,6 +580,7 @@
   function talkTo(npcId, poi) {
     const def = QW.NPCs.get(npcId);
     const st = QW.NPCState.of(npcId);
+    if (poi && poi.id) QW.Game.setFlag('visit_' + poi.id, true);
     if (!st.met) {
       st.met = true;
       QW.bus.emit('npc_met', npcId);

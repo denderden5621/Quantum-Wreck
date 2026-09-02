@@ -60,8 +60,20 @@ taşıdığı araziyle okunur (ölçüm: bölgelerin **%94'ünde** baskın biyom
 arketipiyle eşleşiyor). HUD sürekli "bölge · biyom" gösterir.
 
 **Geçitler.** Engebeli bölgeler arasındaki duvarı delen, adlandırılmış dar
-koridorlar (~14 adet): *Demir Sırt – Yarık Toprakları Geçidi* gibi. Geçit
-tile'ları daima yürünebilir; büyük haritada yön duygusunu bunlar verir.
+koridorlar (~14 adet): *Demir Sırt – Yarık Toprakları Geçidi* gibi. Her geçitten
+iki bölgenin merkezine doğru birer koridor oyulur, böylece geçit gerçekten iki
+tarafı bağlar — yalnızca ağzını açmak, geçidi dağın içinde kapalı bir ada
+bırakıyordu.
+
+**Sinyal ağı (hızlı seyahat).** Haritanın bir ucundan diğerine yürümek altı
+dakika sürüyordu. İletişim modülü taşıyan oyuncu, keşfettiği yerleşimler ve
+kurduğu fenerler arasında yolculuk edebilir — bedava değil: saat ilerler,
+dayanıklılık gider, uzun yolda pusuya düşme ihtimali vardır.
+
+**Yol üstü işaretleri.** 66 POI'yi 692.000 tile'a yaymak yürüyüşü boşaltıyordu.
+Tile karmasından türeyen, POI listesine girmeyen küçük sahneler bunu doldurur:
+keşif direği, kemik yığını, terk edilmiş kamp, sinyal önbelleği, çökmüş anten,
+kargo sandığı. Düz yürüyüşte dakikada ~4 tanesine rastlanır.
 
 **Büyük şehirler.** Merkez İstasyon'a ek olarak üç şehir: **Ocak Şehri**
 (yarık kenarına oyulmuş dökümhane), **Buz Kulesi** (buza gömülü anten şehri),
@@ -349,6 +361,11 @@ Oyun tasarımı literatüründeki ölçütler nereye oturuyor — tahmin değil,
 | **Bölge kimliği** — bölgenin baskın biyomu adına uyuyor mu | — | **%94** | 60.000 tile örneklemesi, 31 bölge |
 | **Şarkı uzunluğu** | 4 sn döngü | **15–47 sn yapılı parça** | dizilim adım sayısı × tempo |
 | **Chunk üretimi** | 2.5 ms | **4.1 ms** | bölge sorgusu ve geçit kontrolü eklendi |
+| **Ulaşılamayan POI** | tohum başına 3–4 kapalı geçit | **0** | tam harita BFS'i, 3 tohum |
+| **Yol üstü içeriği** | dakikada 0 | **dakikada ~4.4 işaret** | 120.000 tile örneklemesi |
+| **Biyom başına düşman türü** | 1–4 (kıyıda 1) | **3–5** | havuz sorgusu, 8 biyom |
+| **Kaçma başarısı** | %39 | **%62 (+her denemede %15)** | 200 deneme |
+| **Görev adım çeşitliliği** | 4 tür (21 adım) | **6 tür (30 adım)** | kill ve visit adımları artık kullanılıyor |
 
 Siluet testi `scratchpad/silhouette.js` mantığıyla tekrar üretilebilir: her
 yaratık 24×16 tuvale çizilir, alfa > 40 olan pikseller siluet sayılır ve tüm

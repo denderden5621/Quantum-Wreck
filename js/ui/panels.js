@@ -480,6 +480,33 @@
       el.body.appendChild(statline(QW.L(reg.name), QW.World.biomeNameAt(t.tx, t.ty)));
     }
 
+    /* --- Sinyal ağı: hızlı seyahat --- */
+    el.body.appendChild(sec(QW.t('ft_head')));
+    if (!QW.Crafting.hasPassive('comms')) {
+      el.body.appendChild(note(QW.t('ft_need')));
+    } else {
+      const nodes = QW.World.travelNodes();
+      if (!nodes.length) el.body.appendChild(note(QW.t('ft_none')));
+      nodes.forEach(p => {
+        const c = QW.World.travelCost(p);
+        const here = c.d < 4;
+        el.body.appendChild(row({
+          iconEl: elm('div', 'ic'),
+          title: QW.L(p.name),
+          sub: QW.Regions.nameAt(p.x, p.y),
+          sub2: here ? QW.t('ft_here') : QW.t('ft_cost', { h: c.hours, s: c.stamina }),
+          right: here ? '●' : c.d + ' ◈',
+          dis: here,
+          fn: () => {
+            if (here) return;
+            QW.Dialog.confirm(QW.L(p.name) + ' — ' + QW.t('ft_cost', { h: c.hours, s: c.stamina }), () => {
+              if (QW.World.travelTo(p)) { Pn.close(); }
+            });
+          }
+        }));
+      });
+    }
+
     el.body.appendChild(sec(QW.t('p_map')));
     /* Keşfedilmiş POI'ler: en yakından uzağa, bölge adıyla birlikte */
     const found = QW.World.pois
