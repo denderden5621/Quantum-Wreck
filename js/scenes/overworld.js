@@ -261,10 +261,12 @@
       let label = QW.t('act_search');
       if (poi.kind === 'camp' || poi.kind === 'station') label = QW.t('act_talk');
       else if (poi.kind === 'lair' || poi.kind === 'archive') label = QW.t('act_enter');
+      else if (poi.kind === 'city') label = QW.t('act_enter');
+      else if (poi.kind === 'pass') label = QW.t('act_search');
       else if (poi.kind === 'wreck') label = QW.t('act_rest');
       else if (poi.kind === 'oasis') label = poi.healed ? QW.t('oasis_drink') : QW.t('oasis_approach');
       if (best > 0.5 || poi.kind === 'camp' || poi.kind === 'station' || poi.kind === 'lair'
-          || poi.kind === 'archive' || poi.kind === 'oasis') {
+          || poi.kind === 'archive' || poi.kind === 'oasis' || poi.kind === 'city') {
         interactTarget = { kind: 'poi', poi, label: label + ' - ' + QW.L(poi.name) };
       }
     }
@@ -332,6 +334,38 @@
         if (poi.beacon || !poi.npc) { QW.Panels.show('rest'); break; }
         talkTo(poi.npc, poi);
         break;
+
+      case 'city': {
+        const ids = poi.npcs || [];
+        QW.Game.atStationBench = true;
+        QW.Audio.fadeMusicTo('camp');
+        QW.Dialog.say([QW.L(poi.blurb || poi.name)], {
+          name: QW.L(poi.name),
+          choices: ids.map(id => ({
+            label: QW.L(QW.NPCs.get(id).name), fn: () => talkTo(id, poi)
+          })).concat([
+            { label: QW.t('p_craft'), fn: () => QW.Panels.show('craft') },
+            { label: QW.t('p_rest'), fn: () => QW.Panels.show('rest') },
+            { label: QW.t('back') }
+          ])
+        });
+        break;
+      }
+
+      case 'pass': {
+        const from = QW.Regions.at(poi.x - 8, poi.y);
+        const to = QW.Regions.at(poi.x + 8, poi.y);
+        QW.Dialog.say([
+          QW.L({ tr: 'Dar bir koridor. İki yanda kaya duvarı, ortada rüzgârın açtığı yol.',
+                 en: 'A narrow corridor. Rock wall on both sides, a road opened by the wind.' }),
+          (from && to && from !== to)
+            ? QW.L({ tr: QW.L(from.name) + ' ile ' + QW.L(to.name) + ' arasında.',
+                     en: 'Between ' + QW.L(from.name) + ' and ' + QW.L(to.name) + '.' })
+            : QW.L(poi.name)
+        ], { name: QW.L(poi.name) });
+        QW.World.discover(poi.x, poi.y, 16);
+        break;
+      }
 
       case 'station': {
         const ids = poi.npcs || [];

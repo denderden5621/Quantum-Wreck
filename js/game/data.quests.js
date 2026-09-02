@@ -165,8 +165,8 @@
       text: { tr: 'Sinyalci Eko, yeraltı tünellerinde antika ses donanımı onarıyor. Manyetik kaset kafalarını anten sürücüsüne, CD lenslerini alıcı optiğine çeviriyor. "Eski teknoloji basit olduğu için ölmez," diyor.',
               en: 'Eko the signalman repairs antique audio hardware in the tunnels. He turns magnetic tape heads into antenna drivers and CD lenses into receiver optics. "Old tech does not die, because it is simple," he says.' } },
     c_valk: { name: { tr: 'Valkyrie', en: 'Valkyrie' },
-      text: { tr: 'Uçurum kenarında yaşıyor, kanyon şahinlerini izleyerek uçuş öğrenmiş. Pervanenin önde olması gerektiğinde ısrarcı: çekişli konfigürasyon gövdeyi temiz havada tutar.',
-              en: 'She lives on the cliff edge and learned flight by watching canyon shrikes. She insists the propeller belongs up front: a puller keeps the airframe in clean air.' } },
+      text: { tr: 'Uçurum kenarında yaşıyor, kanyon şahinlerini izleyerek uçuş öğrenmiş. Kanat burulması konusunda ısrarcı: hatve uç hızıyla birlikte azalmalı, yoksa pervane kendi girdabını yutar.',
+              en: 'She lives on the cliff edge and learned flight by watching canyon shrikes. She is insistent about blade twist: pitch must fall with tip speed, or the prop eats its own wake.' } },
     c_krank: { name: { tr: 'Krank', en: 'Krank' },
       text: { tr: 'Göçebe tamirci. Tek aynakol ve mekanik disk fren dışında hiçbir aktarma organını sahada güvenilir bulmuyor. Ödeme yalnızca işlenmiş titanyum kabloyla.',
               en: 'The nomad mechanic. He trusts no drivetrain in the field but a single chainring and mechanical disc brakes. Payment in drawn titanium cable only.' } },
@@ -207,8 +207,8 @@
       text: { tr: 'Çekirdek bütünleştiğinde geminin yansımalarından bir figür doğdu: sen. Saldırmadı, bekledi ve her hamleni tekrarladı. Yenilmesi güç kullanmayı değil, kendi alışkanlıklarını fark etmeyi gerektirdi.',
               en: 'When the core became whole, a figure rose from the ship’s reflections: you. It did not attack; it waited, and repeated every move you made. Beating it took not force but noticing your own habits.' } },
     c_vehicles: { name: { tr: 'Arazi Araçları', en: 'Terrain Vehicles' },
-      text: { tr: 'Rover dağ bisikleti dinamikleriyle çalışır: tek aynakol zinciri darbede tutar, mekanik disk fren sahada onarılır, geniş tırtıklı lastik gevşek zeminde yüzer. İHA ise çekişli pervaneyle temiz havada uçar ve batarya optimizasyonu menzili belirler.',
-              en: 'The rover runs on mountain-bike dynamics: a single chainring keeps the chain over hits, mechanical disc brakes are field repairable, wide knobby tyres float on loose ground. The UAV flies a puller propeller in clean air, and battery optimisation sets its range.' } }
+      text: { tr: 'Rover dağ bisikleti dinamikleriyle çalışır: tek aynakol zinciri darbede tutar, mekanik disk fren sahada onarılır, geniş tırtıklı lastik gevşek zeminde yüzer. İHA ise burulmuş kanatlarla uçar; hatve uç hızıyla azalır ve batarya optimizasyonu menzili belirler.',
+              en: 'The rover runs on mountain-bike dynamics: a single chainring keeps the chain over hits, mechanical disc brakes are field repairable, wide knobby tyres float on loose ground. The UAV flies twisted blades whose pitch falls with tip speed, and battery optimisation sets its range.' } }
   };
 
   QW.QuestDB = {

@@ -606,6 +606,45 @@
         R(-8, 0, 6, 6, '#a58bff');
         break;
       }
+      case 'city': {
+        /* Büyük yerleşim: sur, kule sırası, kapı ve dış mahalleler */
+        R(-92, 22, 184, 6, '#1a2030');
+        for (let i = -6; i <= 6; i++) R(i * 14 - 3, 16, 7, 8, '#232a3a');       // dış barakalar
+        R(-78, -14, 156, 38, '#2c3550');                                        // sur
+        R(-78, -14, 156, 4, '#4a5a80');
+        R(-78, 20, 156, 4, '#161c2c');
+        /* Kule sırası — yükseklikleri değişken, siluet kırılsın */
+        const hts = [26, 40, 18, 52, 30, 44, 22, 36];
+        hts.forEach((h, i) => {
+          const x = -70 + i * 18;
+          R(x, -14 - h, 13, h, i % 2 ? '#323d5e' : '#3a4668');
+          R(x, -14 - h, 13, 3, '#586a9a');
+          for (let w = 0; w < 3; w++) {
+            const lit = (Math.floor(Date.now() / 900) + i + w) % 3 === 0;
+            R(x + 3, -12 - h + 8 + w * 9, 7, 4, lit ? '#ffd166' : '#151b2a');
+          }
+        });
+        /* Kapı */
+        R(-10, 2, 20, 22, '#101624');
+        R(-7, 6, 14, 18, '#ffd166');
+        R(-7, 6, 14, 3, '#8a6a20');
+        /* Anten direği */
+        R(64, -56, 4, 44, '#5b6b8a');
+        R(58, -60, 16, 4, '#7aa2ff');
+        break;
+      }
+      case 'pass': {
+        /* Geçit: iki kaya duvarı arasında dar koridor ve işaret direği */
+        R(-46, -30, 30, 60, '#4a4f5e'); R(-46, -30, 30, 4, '#6a7180');
+        R(16, -30, 30, 60, '#4a4f5e');  R(16, -30, 30, 4, '#6a7180');
+        R(-16, -30, 32, 60, '#6b6250');
+        for (let i = -2; i <= 2; i++) R(-13 + i * 6, -26 + ((i + 2) % 3) * 18, 4, 5, '#7d7566');
+        /* İşaret direği */
+        R(-2, -14, 3, 22, '#8a94a8');
+        R(-12, -16, 12, 5, '#4df2c8');
+        R(1, -8, 11, 5, '#ffd166');
+        break;
+      }
       case 'archive': {
         /* Yarı gömülü kubbe: kararmış camlar, kaideye vuran zayıf mavi ışık */
         for (let i = 0; i < 5; i++) {

@@ -65,8 +65,8 @@
         en: 'I live on the cliff edge because the wind here is honest.' },
       { tr: 'Bana türbülans profili getir — gerçek uçuş verisi. Karşılığında dronunun beynini veririm.',
         en: 'Bring me turbulence profiles — real flight data. I will give your drone its brain.' },
-      { tr: 'Pervaneyi öne koy. Çekişli konfigürasyon gövdeyi bozulmamış havada tutar; itişli olan kendi girdabını yutar.',
-        en: 'Put the prop up front. A puller keeps the airframe in clean air; a pusher eats its own wake.' }
+      { tr: 'Kanadı kökten uca burarak döv. Hatve uç hızıyla azalmazsa pervane kendi girdabını yutar.',
+        en: 'Forge the blade with twist from root to tip. If pitch does not fall with tip speed, the prop eats its own wake.' }
     ],
     lines: {
       trade: { tr: 'Veri karşılığı şema. Adil takas.', en: 'Data for schematics. A fair trade.' },

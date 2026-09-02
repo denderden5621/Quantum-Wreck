@@ -454,11 +454,11 @@
     cv.style.display = 'block'; cv.style.margin = '0 auto';
     cv.style.border = '2px solid #26365c';
     const t = QW.Player.tilePos();
-    QW.World.drawMinimap(cv, t.tx, t.ty, 300, false);
+    QW.World.drawMinimap(cv, t.tx, t.ty, 520, false);
     el.body.appendChild(cv);
 
     /* Hava tahmini — yalnızca hava kalitesi sensörü varsa */
-    el.body.appendChild(sec(QW.t('w_clear').toUpperCase()));
+    el.body.appendChild(sec(QW.t('w_head')));
     if (QW.Crafting.hasPassive('forecast')) {
       const w = QW.Weather;
       if (w.current.id !== 'clear') {
@@ -473,12 +473,26 @@
       el.body.appendChild(note(QW.t('w_need_sensor')));
     }
 
+    /* Bulunduğun bölge */
+    const reg = QW.Regions.at(t.tx, t.ty);
+    if (reg) {
+      el.body.appendChild(sec(QW.t('map_here')));
+      el.body.appendChild(statline(QW.L(reg.name), QW.World.biomeNameAt(t.tx, t.ty)));
+    }
+
     el.body.appendChild(sec(QW.t('p_map')));
-    /* Keşfedilmiş her POI'ye tile cinsinden mesafe */
-    QW.World.pois.forEach(p => {
-      if (!QW.World.isDiscovered(p.x, p.y)) return;
-      const d = Math.round(U.dist(t.tx, t.ty, p.x, p.y));
-      el.body.appendChild(statline(QW.L(p.name), d + ' ◈'));
+    /* Keşfedilmiş POI'ler: en yakından uzağa, bölge adıyla birlikte */
+    const found = QW.World.pois
+      .filter(p => QW.World.isDiscovered(p.x, p.y))
+      .map(p => ({ p, d: Math.round(U.dist(t.tx, t.ty, p.x, p.y)) }))
+      .sort((a, b) => a.d - b.d);
+    if (!found.length) el.body.appendChild(note(QW.t('codex_none')));
+    found.forEach(({ p, d }) => {
+      const rn = QW.Regions.nameAt(p.x, p.y);
+      const line = elm('div', 'statline');
+      line.appendChild(elm('em', null, QW.L(p.name) + (rn ? '  ·  ' + rn : '')));
+      line.appendChild(elm('span', null, d + ' ◈'));
+      el.body.appendChild(line);
     });
     if (QW.Vehicles.get('drone')) {
       el.foot.appendChild(btn(QW.t('drone_scan'), () => { QW.Vehicles.droneScan(); Pn.render(); }, 'pri'));

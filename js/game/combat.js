@@ -16,7 +16,7 @@
   /* --------------------------------------------------------------------
    * BAŞLATMA
    * ------------------------------------------------------------------ */
-  CB.begin = function (entity) {
+  CB.begin = function (entity, opt) {
     const def = entity.def;
     const boss = !!def.boss;
     CB.s = {
@@ -48,7 +48,7 @@
     }
     /* Kombinasyon ekonomisi: taşıdığın cihazlar birbirini çarpar */
     const syns = QW.Synergies.applyAll(CB.s);
-    QW.Audio.playMusic(def.mirror ? 'echo' : boss ? 'boss' : 'battle');
+    if (!opt || !opt.silent) QW.Audio.playMusic(def.mirror ? 'echo' : boss ? 'boss' : 'battle');
     CB.log(QW.t('cb_start', { name: CB.s.e.name }));
     syns.forEach(x => CB.log('◆ ' + QW.t('syn_active', { name: QW.L(x.name) })));
     if (CB.s.syn.openingStrike) {

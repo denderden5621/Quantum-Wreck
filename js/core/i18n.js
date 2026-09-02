@@ -59,9 +59,9 @@
     cc_name:        { tr: 'İsim',                en: 'Name' },
     cc_body:        { tr: 'Ten tonu',            en: 'Skin tone' },
     cc_hair:        { tr: 'Saç',                 en: 'Hair' },
-    cc_shirt:       { tr: 'Tişört (zırh altı)',  en: 'T-shirt (under-armor)' },
-    cc_fabric:      { tr: 'Kumaş',               en: 'Fabric' },
-    cc_boots:       { tr: 'Keşif botu',          en: 'Exploration boots' },
+    cc_shirt:       { tr: 'Zırh altı içlik',     en: 'Under-armour liner' },
+    cc_fabric:      { tr: 'Kumaş rengi',          en: 'Fabric colour' },
+    cc_boots:       { tr: 'Saha botu',            en: 'Field boots' },
     cc_visor:       { tr: 'Vizör rengi',         en: 'Visor colour' },
     cc_start:       { tr: 'Düşüşe hazırım',      en: 'Ready for the drop' },
     cc_stats:       { tr: 'Kuşam etkileri',      en: 'Loadout effects' },
@@ -184,6 +184,8 @@
 
     /* --- hava / gün döngüsü --- */
     w_clear:      { tr: 'Açık',                en: 'Clear' },
+    w_head:       { tr: 'HAVA DURUMU',         en: 'WEATHER' },
+    map_here:     { tr: 'BULUNDUĞUN YER',      en: 'YOU ARE HERE' },
     w_rad:        { tr: 'Radyasyon fırtınası', en: 'Radiation storm' },
     w_acid:       { tr: 'Asit yağmuru',        en: 'Acid rain' },
     w_bliz:       { tr: 'Tipi',                en: 'Blizzard' },

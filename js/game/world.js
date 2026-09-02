@@ -14,7 +14,7 @@
   const TILE = 16;         // piksel / tile
   const CH = 16;           // tile / chunk
   const CHPX = TILE * CH;  // 256 px
-  const W = 384, H = 384;  // dünya boyu (tile)
+  const W = 832, H = 832;  // dünya boyu (tile) — ~4.7x alan
 
   /* Geçilebilirlik türleri */
   const T = { WALK: 0, WATER: 1, ROCK: 2, CHASM: 3, SWAMP: 4, SAND: 5, RUIN: 6 };
@@ -57,6 +57,8 @@
     Wd._chunks.clear(); Wd._order.length = 0; Wd._biomeCache.clear();
     Wd.harvested = {}; Wd.discovered = {}; Wd.beacons = [];
     Wd.day = 1; Wd.time = 0.32;
+    /* Bölgeler biyomlardan ÖNCE üretilir: biyom seçimi onların sapmasını okur */
+    QW.Regions.generate(Wd.seed, W, H);
     placeSpawn();
     placePOIs();
   };
@@ -114,16 +116,43 @@
     P0.push({ id: 'wreck', kind: 'wreck', x: sp.x, y: sp.y, r: 7,
       name: { tr: 'Göktay Enkazı', en: 'The Göktay Wreck' } });
 
-    /* Merkez İstasyon */
-    const st = findBiomeSpot(rnd, ['plains', 'shore', 'desert'], 22, sp, 55);
-    P0.push({ id: 'station', kind: 'station', x: st.x, y: st.y, r: 5,
-      npcs: QW.NPCs.stationFolk(),
+    /* Merkez İstasyon — ilk büyük yerleşim, enkaza en yakın olanı */
+    const st = findBiomeSpot(rnd, ['plains', 'shore', 'desert'], 26, sp, 70);
+    P0.push({ id: 'station', kind: 'station', x: st.x, y: st.y, r: 6,
+      npcs: QW.NPCs.stationFolk(), city: true,
       name: { tr: 'Merkez İstasyon', en: 'Central Station' } });
+
+    /* BÜYÜK ŞEHİRLER — her biri farklı bir bölgede, kendi karakteriyle */
+    const CITIES = [
+      { id: 'city_forge', biomes: ['canyon', 'mountain', 'plains'], min: 90, max: 220,
+        name: { tr: 'Ocak Şehri', en: 'The Forge' },
+        blurb: { tr: 'Yarık kenarına oyulmuş dökümhane şehri. Bacaları hâlâ tütüyor.',
+                 en: 'A foundry city cut into the rift wall. Its stacks are still smoking.' } },
+      { id: 'city_spire', biomes: ['glacier', 'plains', 'shore'], min: 120, max: 300,
+        name: { tr: 'Buz Kulesi', en: 'Icespire' },
+        blurb: { tr: 'Buzun içine gömülü bir anten şehri. Yarısı hâlâ sıcak.',
+                 en: 'An antenna city sunk into the ice. Half of it is still warm.' } },
+      { id: 'city_bazaar', biomes: ['desert', 'shore', 'plains'], min: 110, max: 280,
+        name: { tr: 'Kum Pazarı', en: 'The Sand Bazaar' },
+        blurb: { tr: 'Devrilmiş bir kargo gemisinin gövdesine kurulmuş kapalı çarşı.',
+                 en: 'A covered market built inside the hull of a toppled freighter.' } }
+    ];
+    CITIES.forEach(c => {
+      const s2 = findBiomeSpot(rnd, c.biomes, c.min, sp, c.max, 3500);
+      P0.push({ id: c.id, kind: 'city', x: s2.x, y: s2.y, r: 8, city: true,
+        npcs: QW.NPCs.stationFolk(), blurb: c.blurb, name: c.name });
+    });
+
+    /* GEÇİTLER — bölgeler arası koridorlar haritada adlandırılmış yer olur */
+    QW.Regions.passes.forEach((ps, i) => {
+      if (U.dist(ps.x, ps.y, sp.x, sp.y) < 14) return;
+      P0.push({ id: 'pass_' + i, kind: 'pass', x: ps.x, y: ps.y, r: 3, name: ps.name });
+    });
 
     /* NPC kampları — her biri tercih ettiği biyomda, rastgele konumlu */
     QW.NPCs.camps().forEach((id, i) => {
       const def = QW.NPCs.get(id);
-      const s = findBiomeSpot(rnd, def.biomePref, 20 + i * 6, sp, 70 + i * 12);
+      const s = findBiomeSpot(rnd, def.biomePref, 34 + i * 10, sp, 130 + i * 40);
       P0.push({ id: 'camp_' + id, kind: 'camp', x: s.x, y: s.y, r: 3, npc: id,
         name: def.name });
     });
@@ -131,35 +160,35 @@
     /* Bölge hâkimi inleri */
     [['glacier', 'boss_ice_worm'], ['swamp', 'boss_acid_golem'], ['desert', 'boss_sand_leviathan'],
      ['forest', 'boss_spore_titan'], ['canyon', 'boss_storm_harrier']].forEach(([bk, bid]) => {
-      const s = findBiomeSpot(rnd, [bk], 35, sp, 130, 4000);
+      const s = findBiomeSpot(rnd, [bk], 70, sp, 300, 6000);
       const e = QW.Enemies.get(bid);
       P0.push({ id: 'lair_' + bk, kind: 'lair', x: s.x, y: s.y, r: 3, boss: bid, biome: bk,
         name: e.name });
     });
 
     /* Çöken Arşiv — Hafıza Bekçisi Alpha'nın kubbesi (anlatı bölümü) */
-    const ar = findBiomeSpot(rnd, ['plains', 'desert', 'shore'], 30, sp, 75);
+    const ar = findBiomeSpot(rnd, ['plains', 'desert', 'shore'], 45, sp, 140);
     P0.push({ id: 'archive', kind: 'archive', x: ar.x, y: ar.y, r: 4,
       boss: 'boss_memory_alpha',
       name: { tr: 'Çöken Arşiv', en: 'The Collapsed Archive' } });
 
     /* Kuruyan Vaha — Kayıp Leviathan'ın krateri (anlatı bölümü) */
-    const oa = findBiomeSpot(rnd, ['swamp', 'shore', 'plains'], 28, sp, 85);
+    const oa = findBiomeSpot(rnd, ['swamp', 'shore', 'plains'], 40, sp, 150);
     P0.push({ id: 'oasis', kind: 'oasis', x: oa.x, y: oa.y, r: 4,
       boss: 'boss_lost_leviathan', healed: false,
       name: { tr: 'Kuruyan Vaha', en: 'The Drying Oasis' } });
 
     /* Yıkık kütüphaneler — veri kristali kaynağı */
-    for (let i = 0; i < 6; i++) {
-      const s = findBiomeSpot(rnd, ['plains', 'forest', 'desert', 'shore'], 16, sp, 95);
+    for (let i = 0; i < 14; i++) {
+      const s = findBiomeSpot(rnd, ['plains', 'forest', 'desert', 'shore'], 20, sp, 260);
       P0.push({ id: 'ruin_' + i, kind: 'ruin', x: s.x, y: s.y, r: 2,
         loot: ['data_crystal', 'cassette_mech', 'cd_lens', 'quartz', 'scrap'],
         name: { tr: 'Yıkık Kütüphane', en: 'Ruined Library' } });
     }
 
     /* Düşmüş uydu / kargo kapsülleri — eski teknoloji hurdası */
-    for (let i = 0; i < 8; i++) {
-      const s = findBiomeSpot(rnd, null, 12, sp, 85);
+    for (let i = 0; i < 22; i++) {
+      const s = findBiomeSpot(rnd, null, 14, sp, 300);
       P0.push({ id: 'pod_' + i, kind: 'pod', x: s.x, y: s.y, r: 1,
         loot: ['scrap', 'power_cell', 'cassette_mech', 'cd_lens', 'copper', 'pcb'],
         name: { tr: 'Kargo Kapsülü', en: 'Cargo Pod' } });
@@ -181,19 +210,55 @@
     const c = Wd._biomeCache.get(key);
     if (c) return c;
 
-    const e = spread(nElev.n01(tx * 0.010, ty * 0.010, 5, 2.0, 0.5), 1.9);
-    const m = spread(nMoist.n01(tx * 0.016 + 120, ty * 0.016 - 60, 4), 2.2);
-    let t = spread(nTemp.n01(tx * 0.006 - 200, ty * 0.006 + 90, 3), 2.0);
+    let e = spread(nElev.n01(tx * 0.0068, ty * 0.0068, 5, 2.0, 0.5), 1.9);
+    let m = spread(nMoist.n01(tx * 0.011 + 120, ty * 0.011 - 60, 4), 2.2);
+    let t = spread(nTemp.n01(tx * 0.0042 - 200, ty * 0.0042 + 90, 3), 2.0);
     /* Kutuplara doğru soğuma — buzullar haritanın kuzey/güney uçlarında */
     const lat = Math.abs(ty - H / 2) / (H / 2);
     t = U.clamp(t * 0.55 + (1 - lat) * 0.45, 0, 1);
-    const rg = nRidge.ridge(tx * 0.026, ty * 0.026, 3);
+
+    /* BÖLGE SAPMASI — her bölgenin kendi iklim karakteri vardır, böylece
+       devasa harita tek bir gürültü tarlası gibi değil, ayrı yerler gibi okunur.
+       Hücre bir kez aranır: sapma, sınır ve engebe aynı nesneden okunur. */
+    const cell = QW.Regions.at(tx, ty);
+    const bias = cell ? cell.arch.bias : null;
+    let rugged = 0;
+    if (bias) {
+      /* Sapma güçlü olmalı: bölge adını taşıdığı biyomla okunmalı */
+      m = U.clamp(m + bias.m * 1.7, 0, 1);
+      t = U.clamp(t + bias.t * 1.7, 0, 1);
+      e = U.clamp(e + bias.e * 1.7, 0, 1);
+      rugged = cell.rugged || 0;
+      /* Sınırlar: bölge kendi karakterine hapsedilir */
+      const cl = cell.arch.clamp;
+      if (cl) {
+        if (cl.tMin !== undefined) t = Math.max(t, cl.tMin);
+        if (cl.tMax !== undefined) t = Math.min(t, cl.tMax);
+        if (cl.mMin !== undefined) m = Math.max(m, cl.mMin);
+        if (cl.mMax !== undefined) m = Math.min(m, cl.mMax);
+        if (cl.eMin !== undefined) e = Math.max(e, cl.eMin);
+        if (cl.eMax !== undefined) e = Math.min(e, cl.eMax);
+      }
+    }
+
+    let rg = nRidge.ridge(tx * 0.018, ty * 0.018, 3) + rugged * 0.05;
+    const rgc = QW.Regions.clampAt(tx, ty);
+    /* Düz taban: kanyon bandına oturt, uçurum eşiğini (0.945) aşma */
+    if (rgc && rgc.rgMin !== undefined) rg = Math.max(rg, rgc.rgMin);
 
     /* Dünyanın kenarı denize açılır */
     const edge = Math.min(tx, ty, W - 1 - tx, H - 1 - ty) / 26;
     const ee = e * U.clamp(edge, 0, 1);
 
+    /* Geçitler: bölgeler arasındaki duvarı delen tek yol — daima yürünür */
+    const pass = QW.Regions.passNear(tx, ty, 0);
     let b;
+    if (pass) {
+      const d = U.dist(tx, ty, pass.x, pass.y);
+      if (d <= pass.r) b = (ee < 0.30) ? BIOMES.shore : BIOMES.canyon;
+      else b = null;
+      if (b) { cache(key, b); return b; }
+    }
     if (ee < 0.28) b = BIOMES.sea;
     else if (ee < 0.325) b = BIOMES.shore;
     else if (ee > 0.86) b = BIOMES.mountain;
@@ -205,7 +270,11 @@
     else if (m < 0.36 && t > 0.52) b = BIOMES.desert;
     else b = BIOMES.plains;
 
-    if (Wd._biomeCache.size > 200000) Wd._biomeCache.clear();
+    return cache(key, b);
+  }
+
+  function cache(key, b) {
+    if (Wd._biomeCache.size > 240000) Wd._biomeCache.clear();
     Wd._biomeCache.set(key, b);
     return b;
   }
@@ -565,6 +634,7 @@
       if (x < 0 || y < 0 || x >= s || y >= s) return;
       const c = p.kind === 'station' ? '#4df2c8' : p.kind === 'camp' ? '#ffd166'
               : p.kind === 'lair' ? '#ff5d7a' : p.kind === 'wreck' ? '#ffffff'
+              : p.kind === 'city' ? '#ffe08a' : p.kind === 'pass' ? '#b0bcd0'
               : p.kind === 'archive' ? '#8fd0ff' : p.kind === 'oasis' ? (p.healed ? '#4a9fd0' : '#9be24a')
               : '#7aa2ff';
       ctx.fillStyle = c; ctx.fillRect(x - 1, y - 1, 3, 3);

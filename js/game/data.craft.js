@@ -71,24 +71,38 @@
             en: 'Schematic: Eko. The tape head becomes the antenna driver, the CD lens the receiver.' } });
 
   /* --------------------------- KUŞAM --------------------------- */
-  rec('r_shirt_boxy', { cat: 'gear', need: { bio_fiber: 4 }, out: { id: 'shirt_boxy', n: 1 }, time: 1.4,
-    name: { tr: 'Geniş Kesim Tişört', en: 'Boxy-Fit T-Shirt' },
-    note: { tr: 'Bol kesim omuz hareketini serbest bırakır.', en: 'The loose cut frees the shoulder.' } });
+  rec('r_liner_crew', { cat: 'gear', need: { bio_fiber: 4 }, out: { id: 'liner_crew', n: 1 }, time: 1.4,
+    name: { tr: 'Mürettebat İçliği', en: 'Crew Undersuit' },
+    note: { tr: 'Düz dikiş, omuzda sürtünme yok.', en: 'Flat seams, no chafing at the shoulder.' } });
 
-  rec('r_shirt_drifit', { cat: 'gear', need: { bio_fiber: 6, silicon: 1 }, out: { id: 'shirt_drifit', n: 1 }, time: 1.8,
-    name: { tr: 'Dri-Fit Teknik Tişört', en: 'Dri-Fit Technical Tee' },
+  rec('r_liner_wick', { cat: 'gear', need: { bio_fiber: 6, silicon: 1 }, out: { id: 'liner_wick', n: 1 }, time: 1.8,
+    name: { tr: 'Kılcal Kanallı İçlik', en: 'Capillary Wick Liner' },
     note: { tr: 'Lifleri kılcal kanallı örersin: ter zırhın içinde kalmaz.',
             en: 'Weave the fibres with capillary channels: sweat never stays inside the armour.' } });
 
-  rec('r_shirt_thermal', { cat: 'gear', need: { bio_fiber: 6, spore_cap: 2 }, out: { id: 'shirt_thermal', n: 1 }, time: 1.8,
-    name: { tr: 'Termal İçlik', en: 'Thermal Base Layer' } });
+  rec('r_liner_thermal', { cat: 'gear', need: { bio_fiber: 6, spore_cap: 2, copper: 2 }, out: { id: 'liner_thermal', n: 1 }, time: 1.8,
+    name: { tr: 'Termal Regülasyon Katmanı', en: 'Thermal Regulation Layer' },
+    note: { tr: 'İnce bakır hat örgünün içinden geçirilir.', en: 'A fine copper line is threaded through the weave.' } });
 
-  rec('r_boots_cushion', { cat: 'gear', need: { bio_fiber: 3, rubber_sap: 3, scrap: 1 }, out: { id: 'boots_cushion', n: 1 }, time: 2.0,
-    name: { tr: 'Yastıklamalı Keşif Botu', en: 'Cushioned Exploration Boots' },
-    note: { tr: 'Kauçuk köpük ara taban zorlu zeminde darbeyi emer.', en: 'A rubber-foam midsole absorbs impact on rough ground.' } });
+  rec('r_liner_lead', { cat: 'gear', need: { bio_fiber: 5, scrap: 4, titanium: 1 }, out: { id: 'liner_lead', n: 1 }, time: 2.2,
+    name: { tr: 'Kurşun-İpek Astar', en: 'Lead-Silk Liner' },
+    note: { tr: 'Hurdadan çıkarılan kurşun tozu biyo-ipeğe emdirilir.',
+            en: 'Lead dust rendered from scrap is worked into the bio-silk.' } });
 
-  rec('r_boots_grip', { cat: 'gear', need: { rubber_sap: 2, titanium: 2, bio_fiber: 2 }, out: { id: 'boots_grip', n: 1 }, time: 2.0,
-    name: { tr: 'Kramponlu Bot', en: 'Crampon Boots' } });
+  rec('r_boots_regolith', { cat: 'gear', need: { bio_fiber: 3, rubber_sap: 3, scrap: 1 }, out: { id: 'boots_regolith', n: 1 }, time: 2.0,
+    name: { tr: 'Regolit Botu', en: 'Regolith Boots' },
+    note: { tr: 'Gözenekli kauçuk ara taban keskin regolitin darbesini emer.',
+            en: 'A porous rubber midsole absorbs the shock of sharp regolith.' } });
+
+  rec('r_boots_maggrip', { cat: 'gear', need: { rubber_sap: 2, titanium: 2, copper: 3 }, out: { id: 'boots_maggrip', n: 1 }, time: 2.0,
+    name: { tr: 'Manyetik Tutunma Botu', en: 'Mag-Grip Boots' },
+    note: { tr: 'Taban elektromıknatısları metal enkazda ve buzda tutunur.',
+            en: 'Sole electromagnets bite into wreck plating and ice.' } });
+
+  rec('r_boots_seal', { cat: 'gear', need: { rubber_sap: 4, bio_fiber: 3, acid_sac: 1 }, out: { id: 'boots_seal', n: 1 }, time: 2.2,
+    name: { tr: 'Contalı Batak Botu', en: 'Sealed Marsh Boots' },
+    note: { tr: 'Asit kesesinden çıkarılan polimer contayı diz hizasına kadar çeker.',
+            en: 'Polymer rendered from an acid sac seals the boot to the knee.' } });
 
   rec('r_suit_reinforced', { cat: 'gear', need: { titanium: 6, ti_wire: 2, scrap: 4 }, out: { id: 'suit_reinforced', n: 1 }, time: 3.4,
     name: { tr: 'Takviyeli Zırh', en: 'Reinforced Armour' } });
@@ -117,7 +131,7 @@
 
   rec('r_disc_brake', { cat: 'veh', need: { titanium: 2, ti_wire: 1, scrap: 3 }, out: { id: 'disc_brake', n: 1 }, time: 2.0,
     name: { tr: 'Mekanik Disk Fren', en: 'Mechanical Disc Brake' },
-    note: { tr: 'Kablo çekişli, yüksek sürtünmeli balata. Hidrolik hattı patlamaz.',
+    note: { tr: 'Kabloyla çekilen, yüksek sürtünmeli balata. Hidrolik hattı patlamaz.',
             en: 'Cable-actuated, high-friction pads. No hydraulic line to burst.' } });
 
   rec('r_tire', { cat: 'veh', need: { rubber_sap: 4, bio_fiber: 2 }, out: { id: 'tire_knobby', n: 2 }, time: 1.8,
@@ -132,9 +146,9 @@
     name: { tr: 'Servo Motor', en: 'Servo Motor' } });
 
   rec('r_prop', { cat: 'veh', need: { titanium: 1, bio_fiber: 2, scrap: 1 }, out: { id: 'prop_blade', n: 2 }, time: 1.6,
-    name: { tr: 'Çekişli Pervane Kanadı', en: 'Puller Propeller Blade' },
-    note: { tr: 'Hatve açısı önden çekiş için ayarlanır: pervane gövdeyi bozulmamış havada çeker.',
-            en: 'Pitch set for a puller layout: the prop drags the airframe through undisturbed air.' } });
+    name: { tr: 'Pervane Kanadı', en: 'Propeller Blade' },
+    note: { tr: 'Kanat kökten uca burularak dövülür; hatve uç hızıyla birlikte azalır.',
+            en: 'The blade is forged with twist from root to tip, pitch falling as tip speed rises.' } });
 
   rec('r_rover', { cat: 'veh', lock: true, need: { frame_alloy: 1, chainring: 1, disc_brake: 2, tire_knobby: 2, battery: 1, servo: 1 },
     out: { id: 'veh_rover', n: 1 }, vehicle: 'rover', time: 5.0, fail: 0.12,

@@ -46,10 +46,28 @@ target is at least 44×44 px. The UI adapts to both portrait and landscape.*
 ## Oyun Sistemleri · Game Systems
 
 ### Dünya · World
-384×384 tile'lık bir gezegen, Perlin/fbm gürültüsünden deterministik olarak
-üretilir. Doku gürültüsü **dünya piksel koordinatından** türetildiği için harita
-tile sınırlarında kopmaz; biyom sınırları Bayer taramasıyla harmanlanır — sonuç
-dikişsiz (seamless) kayan gerçek bir 8-bit arazidir.
+**832×832 tile'lık** (≈166.000 tile, 13.312×13.312 piksel) bir gezegen, Perlin/fbm
+gürültüsünden deterministik olarak üretilir. Doku gürültüsü **dünya piksel
+koordinatından** türetildiği için harita tile sınırlarında kopmaz; biyom sınırları
+Bayer taramasıyla harmanlanır — sonuç dikişsiz (seamless) kayan gerçek bir 8-bit
+arazidir.
+
+**Bölgeler.** Harita tek bir gürültü tarlası değildir. Üstüne serilen Voronoi
+katmanı dünyayı **~31 adlandırılmış bölgeye** böler: Cam Denizi, Don Yaylası,
+Miselyum Havzası, Çürük Bataklık, Yarık Toprakları, Demir Sırt, Tuz Kıyıları…
+Her bölgenin kendi iklim sapması ve sınırları vardır, bu yüzden bölge adını
+taşıdığı araziyle okunur (ölçüm: bölgelerin **%94'ünde** baskın biyom
+arketipiyle eşleşiyor). HUD sürekli "bölge · biyom" gösterir.
+
+**Geçitler.** Engebeli bölgeler arasındaki duvarı delen, adlandırılmış dar
+koridorlar (~14 adet): *Demir Sırt – Yarık Toprakları Geçidi* gibi. Geçit
+tile'ları daima yürünebilir; büyük haritada yön duygusunu bunlar verir.
+
+**Büyük şehirler.** Merkez İstasyon'a ek olarak üç şehir: **Ocak Şehri**
+(yarık kenarına oyulmuş dökümhane), **Buz Kulesi** (buza gömülü anten şehri),
+**Kum Pazarı** (devrilmiş kargo gemisine kurulmuş kapalı çarşı). Her biri sur,
+değişken yükseklikte kule silueti, yanıp sönen pencereler ve kapı ile çizilir;
+tüccarları, tezgâhı ve dinlenme noktası vardır.
 
 Biyomlar: Kül Ovaları, Cam Çölü, Buzul, Mantar Ormanı, Zehirli Bataklık, Kanyon,
 Kaya Sırtları, Kıyı ve Kuantum Denizi.
@@ -135,6 +153,13 @@ Ayarlardan istenen an açılıp kapanır: gelen hasar yarıya iner, oksijen yava
 tükenir, ölünce malzeme kaybedilmez. Hiçbir içeriği kilitlemez, hiçbir şeyi
 "kolay" diye işaretlemez.
 
+### Savaş girişi
+Tehdide çarpınca oyun doğrudan menüye düşmez: ekran yatay bantlara ayrılıp
+dönüşümlü yönlerde kayar, beyaz bir çakma olur, düşmanın adı sağdan süzülerek
+levhaya oturur (bölge hâkimlerinde altına **BÖLGE HÂKİMİ** yazar) ve buna eşlik
+eden kısa bir **fanfar** çalar — sıradan düşman ve boss için ayrı. Giriş boyunca
+oynanış kilitlidir; bittiğinde savaş müziği devreye girer.
+
 ### Savaş
 Haritadaki tehditlere çarpınca büyük mobil butonlu, sıra tabanlı bir savaş
 ekranına geçilir. Saldırı silahla sınırlı değildir — taktikler ürettiğiniz
@@ -165,10 +190,17 @@ siyah-beyaz bir dünya fotoğrafı, arkasında soluk bir el yazısı. Eşya taba
 irfan (item-based lore) buradan işler — makineyi istediğin zaman açabilirsin ve
 oyunun ortasındaki açığa çıkışın ardından okuduğun metin değişir.
 
-**Uyarlanabilir müzik.** 8-bit dizileyici stres seviyene, canına, havaya ve
-gecenin ağırlığına göre üç gerilim bandı arasında geçer: tempo yükselir, panik
-bandında tritona yakın disonan bir gölge katman eklenir. Hologram sahnesinde ise
-müzik tamamen susar — sessizlik orada anlatının kendisidir.
+**Şarkılar, döngü değil.** Her parça bölümlerden oluşan gerçek bir şarkıdır:
+giriş → A → B → nakarat → köprü → çıkış. Dört ses (melodi, karşı-ezgi, bas,
+arpej) ve sentezlenmiş davul (kick/snare/hat) aynı anda çalar; melodiye ince bir
+oktav alt gövde eşlik eder, bazı parçalarda swing vardır. Şarkılar 15–47 saniye
+uzunluğunda yapılı parçalardır ve dizilim boyunca ilerler — 16 adımlık bir
+melodi sonsuza kadar tekrarlamaz.
+
+**Uyarlanabilir müzik.** Dizileyici stres seviyene, canına, havaya ve gecenin
+ağırlığına göre üç gerilim bandı arasında geçer: tempo yükselir, panik bandında
+tritona yakın disonan bir gölge katman eklenir. Hologram sahnesinde ise müzik
+tamamen susar — sessizlik orada anlatının kendisidir.
 
 **Leitmotif — "Eve Dönüş".** Dört notalık tek bir cümle oyunun her dönüm
 noktasında dönüşerek geri gelir: fotoğraf makinesinde saf hâliyle, Alpha'nın
@@ -246,6 +278,7 @@ js/
     data.npc.js             NPC'ler, takas ağı, diyaloglar
     data.quests.js          Görevler ve arşiv (codex)
     data.synergy.js         Cihaz sinerjileri (kombinasyon ekonomisi)
+    regions.js              Voronoi bölge katmanı, iklim sınırları, geçitler
     path.js                 Izgara tabanlı A* yol bulma (yığın + görüş hattı)
     world.js                Üretim, biyomlar, chunk çizimi, POI'ler, zaman
     weather.js              Dinamik hava ve parçacıklar
@@ -311,7 +344,11 @@ Oyun tasarımı literatüründeki ölçütler nereye oturuyor — tahmin değil,
 | **Zayıf nokta çarpanı** — bilgi / radar / sinerji | 1.6 (tek) | **1.25 / 1.6 / 2.3** | Savaş motorunda ölçülen hasar |
 | **Adaptasyon** — 3 yenilgi sonrası hasar artışı | yok | **+%57** | 200 vuruşluk ortalama |
 | **Yük biriktirme** — 3 tur beklemenin getirisi | yok | **×1.76** | Anlık vs biriktirilmiş aşırı yükleme |
-| **Kare süresi** (medyan / p99) | 16.7 / 17.3 ms | **16.7 / 17.5 ms** | 10 sn kesintisiz yürüyüş, 570 kare |
+| **Kare süresi** (medyan / p99) | 16.7 / 17.3 ms | **16.7 / 21.9 ms** | 10 sn kesintisiz yürüyüş, 570 kare |
+| **Dünya alanı** | 384×384 | **832×832** (≈4.7×) | tile sayısı |
+| **Bölge kimliği** — bölgenin baskın biyomu adına uyuyor mu | — | **%94** | 60.000 tile örneklemesi, 31 bölge |
+| **Şarkı uzunluğu** | 4 sn döngü | **15–47 sn yapılı parça** | dizilim adım sayısı × tempo |
+| **Chunk üretimi** | 2.5 ms | **4.1 ms** | bölge sorgusu ve geçit kontrolü eklendi |
 
 Siluet testi `scratchpad/silhouette.js` mantığıyla tekrar üretilebilir: her
 yaratık 24×16 tuvale çizilir, alfa > 40 olan pikseller siluet sayılır ve tüm

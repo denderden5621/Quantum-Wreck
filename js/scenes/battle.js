@@ -10,6 +10,11 @@
   let el = {}, menu = 'root', anim = 0, entity = null;
   let bgStars = [], resolved = false, endTimer = 0, storyOutcome = null;
 
+  /* Savaş girişi: JRPG usulü geçiş animasyonu + fanfar.
+     intro fazı boyunca oynanış kilitli, düşman sahneye "iner". */
+  const INTRO_LEN = 1.5;
+  let introT = 0, introDone = true, introShards = [];
+
   /* ------------------------------------------------------------------
    * JUICE — "polish that artificially enhances interaction without
    * changing the underlying simulation" (Swink). Hiçbiri hasar hesabına
@@ -110,10 +115,22 @@
       bgStars = [];
       for (let i = 0; i < 40; i++) bgStars.push({ x: Math.random(), y: Math.random(), s: Math.random() });
 
-      QW.Combat.begin(entity);
+      /* --- giriş animasyonu: bantlar kayar, fanfar çalar, oynanış kilitli --- */
+      introT = 0; introDone = false;
+      introShards = [];
+      for (let i = 0; i < 14; i++) {
+        introShards.push({
+          y: (i / 14), h: 1 / 14,
+          dir: i % 2 ? 1 : -1,
+          off: 1, sp: 0.9 + Math.random() * 0.8
+        });
+      }
+      el.actions.innerHTML = '';
       el.log.innerHTML = '';
-      QW.Combat.s.log.forEach(pushLog);
-      Battle.buildActions();
+      QW.Audio.stinger(data.boss ? 'boss' : 'battle');
+      QW.HUD.shake();
+
+      QW.Combat.begin(entity, { silent: true });   // satırlar bus üzerinden düşer
       Battle.refresh();
     },
 
@@ -278,6 +295,20 @@
     },
 
     update(dt) {
+      /* Giriş animasyonu bitene kadar savaş başlamaz */
+      if (!introDone) {
+        introT += dt;
+        introShards.forEach(sh => {
+          sh.off = Math.max(0, sh.off - dt * sh.sp * 1.5);
+        });
+        if (introT >= INTRO_LEN) {
+          introDone = true;
+          const s0 = QW.Combat.s;
+          QW.Audio.playMusic(s0 && s0.boss ? 'boss' : (s0 && s0.mirror ? 'echo' : 'battle'));
+          Battle.buildActions();
+        }
+        return;
+      }
       /* Hit-stop sırasında zaman durur: darbenin ağırlığı buradan gelir */
       if (stepFX(dt)) return;
       anim += dt;
@@ -424,6 +455,43 @@
       /* Tur göstergesi */
       P.text(ctx, QW.t('cb_turn', { n: s.turn }), 4, 4, '#7d93a8', 1, '#000000');
       if (s.boss) P.text(ctx, QW.t('cb_boss'), S.w - P.textW(QW.t('cb_boss'), 1) - 4, 4, '#ff5d7a', 1, '#000000');
+
+      /* --- giriş geçişi: bantlar kayarak açılır, isim levhası süzülür --- */
+      if (!introDone) {
+        const k = U.clamp(introT / INTRO_LEN, 0, 1);
+        introShards.forEach(sh => {
+          if (sh.off <= 0) return;
+          const y = sh.y * S.h, h = Math.ceil(sh.h * S.h) + 1;
+          const x = sh.dir * sh.off * (S.w + 20);
+          ctx.fillStyle = '#05070d';
+          ctx.fillRect(x, y, S.w + 20, h);
+          ctx.fillStyle = sh.dir > 0 ? 'rgba(77,242,200,0.35)' : 'rgba(255,93,122,0.30)';
+          ctx.fillRect(x + (sh.dir > 0 ? -3 : S.w + 17), y, 3, h);
+        });
+        /* Beyaz çakma */
+        if (k < 0.16) {
+          ctx.fillStyle = 'rgba(255,255,255,' + (0.85 * (1 - k / 0.16)).toFixed(2) + ')';
+          ctx.fillRect(0, 0, S.w, S.h);
+        }
+        /* İsim levhası sağdan süzülür */
+        if (k > 0.35 && s) {
+          const t2 = U.clamp((k - 0.35) / 0.3, 0, 1);
+          const name = s.e.name.toLocaleUpperCase(QW.I18N.lang);
+          const bw = P.textW(name, 2) + 16;
+          const bx = U.lerp(S.w, (S.w - bw) / 2, t2 < 1 ? t2 * t2 * (3 - 2 * t2) : 1);
+          const by = S.h * 0.44;
+          ctx.fillStyle = 'rgba(5,7,13,0.88)';
+          ctx.fillRect(bx - 4, by - 5, bw + 8, 22);
+          ctx.fillStyle = s.boss ? '#ff5d7a' : '#4df2c8';
+          ctx.fillRect(bx - 4, by - 5, bw + 8, 2);
+          ctx.fillRect(bx - 4, by + 15, bw + 8, 2);
+          P.text(ctx, name, bx + 4, by + 1, '#dff6ff', 2, '#000000');
+          if (s.boss && k > 0.6) {
+            const bt = QW.t('cb_boss');
+            P.text(ctx, bt, (S.w - P.textW(bt, 1)) / 2, by + 22, '#ff5d7a', 1, '#000000');
+          }
+        }
+      }
 
       ctx.restore();
     }

@@ -10,12 +10,12 @@
 
   const SKIN  = ['#f4d3b0', '#e0ac7e', '#c98d5e', '#a06a44', '#7a4b2c', '#5a361f'];
   const HAIR  = ['#20242e', '#3a2a1e', '#6a4a10', '#a06a3a', '#e8e8f0', '#5a3a7a', '#2f6f5a'];
-  const CLOTH = ['#e0e4ea', '#4ad0e0', '#ff8fb0', '#ffd166', '#7aa2ff', '#8fd98f', '#c79bff', '#33333a'];
-  const BOOTC = ['#a06a3a', '#4e3018', '#5a6a4a', '#33333a', '#7a8494'];
+  const CLOTH = ['#c9cfda', '#4ad0e0', '#ff9d6a', '#c2c86a', '#7aa2ff', '#6f9a8a', '#9a8fb8', '#3a4150'];
+  const BOOTC = ['#8a8f9c', '#3e4350', '#5a6a4a', '#23303e', '#6a5a3a'];
   const VISOR = ['#4df2c8', '#8fd0ff', '#ffd166', '#ff8fb0', '#c79bff'];
 
-  const SHIRTS = ['shirt_boxy', 'shirt_drifit', 'shirt_thermal'];
-  const BOOTS  = ['boots_cushion', 'boots_grip'];
+  const SHIRTS = ['liner_crew', 'liner_wick', 'liner_thermal', 'liner_lead'];
+  const BOOTS  = ['boots_regolith', 'boots_maggrip', 'boots_seal'];
 
   const cfg = {
     name: 'GÖKTAY-7',
