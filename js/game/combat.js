@@ -419,6 +419,56 @@
     CB.endPlayerTurn();
   };
 
+  /* --------------------------------------------------------------------
+   * ONARIM — zihni olan bir yaratığı öldürmeden bitirmenin yolu
+   *
+   * Bu bir "bağışla" düğmesi değildir. Önce ARIZAYI TEŞHİS etmen gerekir
+   * (doğru alet elinde olmalı), sonra onu GİDERECEK malzemeyi harcarsın.
+   * Karşılığında XP ve ganimet yoktur; yalnızca o şey yaşamaya devam eder.
+   * Merhamet burada ucuz değil, PAHALIDIR — oyunun geri kalanı gibi.
+   * ------------------------------------------------------------------ */
+  CB.reliefState = function () {
+    const s = CB.s;
+    if (!s) return null;
+    const id = s.e.meta.id;
+    if (!QW.Record.hasMind(id)) return null;
+    const rel = QW.Record.relief(id);
+    if (!rel) return null;
+    const hasTool = !rel.tool || QW.Inventory.has(rel.tool);
+    const missing = [];
+    Object.keys(rel.need).forEach(k => {
+      const have = QW.Inventory.count(k);
+      if (have < rel.need[k]) missing.push(QW.Items.name(k) + ' ' + have + '/' + rel.need[k]);
+    });
+    return { rel, hasTool, missing, ok: hasTool && !missing.length, diagnosed: !!s.e.diagnosed };
+  };
+
+  /* Teşhis: aleti olan oyuncu arızayı görür. Bir tur harcar. */
+  CB.playerDiagnose = function () {
+    const s = CB.s; if (!s || s.phase !== 'player') return;
+    const st = CB.reliefState();
+    if (!st || !st.hasTool) { QW.Audio.sfx('deny'); return; }
+    s.e.diagnosed = true;
+    QW.Audio.sfx('scan');
+    CB.log('◆ ' + QW.L(st.rel.diag));
+    CB.endPlayerTurn();
+  };
+
+  /* Onarım: malzemeyi harcar, savaşı ölümsüz bitirir. */
+  CB.playerRelieve = function () {
+    const s = CB.s; if (!s || s.phase !== 'player') return;
+    const st = CB.reliefState();
+    if (!st || !st.ok) { QW.Audio.sfx('deny'); return; }
+    Object.keys(st.rel.need).forEach(k => QW.Inventory.remove(k, st.rel.need[k], true));
+    QW.Audio.sfx('craft');
+    QW.Audio.motif('bloom');
+    CB.log('◆ ' + QW.L(st.rel.done));
+    s.relieved = true;
+    s.phase = 'over';
+    s.over = 'relief';
+    QW.Record.noteSpare(s.e.meta.id);
+  };
+
   CB.playerFlee = function () {
     const s = CB.s; if (!s || s.phase !== 'player') return;
     if (s.boss) {
@@ -626,6 +676,19 @@
     const s = CB.s;
     if (!s) return null;
     const res = { outcome: s.over, xp: 0, ec: 0, loot: [], fragment: false };
+    if (s.over === 'relief') {
+      /* Onarılan hâkim çekirdek parçasını KENDİSİ verir: onu sökmen
+         gerekmiyordu. XP ve ganimet yok — bedeli malzemeydi. */
+      const m = s.e.meta;
+      if ((m.drop || []).some(d => d.id === 'core_fragment')) {
+        QW.Inventory.add('core_fragment', 1, true);
+        res.fragment = true;
+        res.loot.push(QW.Items.name('core_fragment') + ' x1');
+      }
+      QW.bus.emit('enemy_relieved', m.id);
+      if (s.boss) QW.bus.emit('boss_relieved', m.id);
+      return res;
+    }
     if (s.over === 'win') {
       const m = s.e.meta;
       res.xp = m.xp; res.ec = m.ec;
@@ -639,6 +702,7 @@
           if (d.id === 'core_fragment') res.fragment = true;
         }
       });
+      QW.Record.noteKill(m.id);
       QW.bus.emit('enemy_killed', m.id);
       if (s.boss) QW.bus.emit('boss_killed', m.id);
     }

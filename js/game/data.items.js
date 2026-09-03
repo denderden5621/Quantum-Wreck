@@ -326,8 +326,9 @@
 
   it('ship_log', { cat: 'key', value: 0, w: 0.1, icon: { s: 'card', c: '#ffd166', c2: '#7a5410' },
     name: { tr: 'Gemi Kaydı', en: 'Ship Log' },
-    desc: { tr: 'Göktay\'ın son saniyeleri. Oku ve arşive işle.', en: 'The final seconds of the Göktay. Read it into the codex.' },
-    use: { codex: 'c_wreck' } });
+    desc: { tr: 'Göktay\'ın son saniyeleri — ve mürettebat listesi. Kendi adını yedinci sırada görüyorsun.',
+            en: 'The final seconds of the Göktay — and the crew manifest. You find your own name on line seven.' },
+    use: { codex: 'c_self' } });
 
   it('analog_camera', { cat: 'key', value: 0, w: 0.6, icon: { s: 'camera', c: '#6a6f7a', c2: '#2a2e36' },
     name: { tr: 'Analog Fotoğraf Makinesi', en: 'Analogue Camera' },

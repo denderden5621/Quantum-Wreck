@@ -397,6 +397,24 @@
     setTabs(null);
     const G = QW.Game;
     el.body.appendChild(note(QW.t('log_deaths', { n: G.log.deaths }) + ' — ' + QW.t('log_pride')));
+
+    /* BEDEL — zihni olan yaratıklarla ne yaptığın. Kaydın en ağır sütunu
+       burada durur; oyuncu istediği an bakabilmeli. */
+    const rec = QW.Record.entries();
+    el.body.appendChild(note(QW.t('rec_title') + ' — ' + QW.Record.bandText()));
+    if (!rec.length) el.body.appendChild(note(QW.t('rec_none')));
+    rec.forEach(e => {
+      const bits = [];
+      if (e.killed) bits.push(QW.t('rec_killed'));
+      if (e.spared) bits.push(QW.t('rec_spared'));
+      el.body.appendChild(row({
+        iconEl: elm('div', 'ic'),
+        title: QW.L(e.def.name),
+        sub: bits.join(' · '),
+        right: e.spared ? '◆' : '×',
+        on: !!e.spared
+      }));
+    });
     const entries = G.logEntries();
     if (!entries.length) { el.body.appendChild(note(QW.t('log_none'))); return; }
     entries.forEach(e => {

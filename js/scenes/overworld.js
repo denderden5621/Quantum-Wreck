@@ -631,16 +631,61 @@
     }
     st.talks++;
     QW.Audio.fadeMusicTo(def.music || 'camp');
-    const line = def.greet[Math.min(st.talks - 1, def.greet.length - 1)];
-    QW.Dialog.say([QW.L(line)], {
+
+    /* Konuşma artık sayaçla ilerlemiyor. Karakterin nerede olduğunu
+       oyuncunun DÜNYADA ne başardığı belirler: takas yaptı mı, modülü
+       kurdu mu, diski açtı mı, kaç parça taşıyor. Karakter oyuncuya
+       eşlik eder; onun konuşmalarını saymaz. */
+    const bonded = QW.Bonds.linesFor(npcId);
+    const lines = bonded ? bonded.map(QW.L)
+                         : [QW.L(def.greet[Math.min(st.talks - 1, def.greet.length - 1)])];
+
+    /* Kask kaydına tepki — bandı değiştiğinde bir kez, en başta söylenir */
+    const toll = QW.Bonds.tollLine(npcId);
+    if (toll) lines.unshift(QW.L(toll));
+
+    QW.Dialog.say(lines, {
       name: QW.L(def.name) + ' — ' + QW.L(def.title),
       sprite: def.sprite,
-      choices: [
-        { label: QW.t('act_trade'), fn: () => { QW.Panels.tab = 'barter'; QW.Panels.show('trade', { npc: npcId }); } },
-        { label: QW.t('act_rest'), fn: () => QW.Panels.show('rest') },
-        { label: QW.t('back') }
-      ]
+      choices: npcChoices(npcId)
     });
+  }
+
+  /* Karaktere özgü eylemler — takas masasının ötesinde yapılacak şeyler */
+  function npcChoices(npcId) {
+    const list = [];
+
+    /* Krank'ın vinci: malzeme tamamsa birlikte çalıştırılır. Dört yıllık
+       bir bekleyişi bitiren şey oyuncunun getirdiği kablo ve servodur. */
+    if (npcId === 'krank' && !QW.Game.flags.krank_winch) {
+      const need = { ti_wire: 6, servo: 2 };
+      const ok = QW.Inventory.hasAll(need);
+      const miss = Object.keys(need)
+        .map(k => QW.Items.name(k) + ' ' + QW.Inventory.count(k) + '/' + need[k]).join(', ');
+      list.push({
+        label: ok ? QW.t('krank_winch_go') : QW.t('krank_winch_need', { list: miss }),
+        dis: !ok,
+        fn: () => {
+          QW.Inventory.consumeAll(need);
+          QW.Game.setFlag('krank_winch', true);
+          QW.Audio.stopMusic();
+          QW.Audio.motif('grief');
+          QW.Dialog.say([QW.t('winch_1'), QW.t('winch_2'), QW.t('winch_3')], {
+            name: QW.L(QW.NPCs.get('krank').name),
+            onDone: () => {
+              QW.Game.codexUnlock('c_krank');
+              QW.Quests.evaluateAll();
+              QW.Audio.fadeMusicTo('camp');
+            }
+          });
+        }
+      });
+    }
+
+    list.push({ label: QW.t('act_trade'), fn: () => { QW.Panels.tab = 'barter'; QW.Panels.show('trade', { npc: npcId }); } });
+    list.push({ label: QW.t('act_rest'), fn: () => QW.Panels.show('rest') });
+    list.push({ label: QW.t('back') });
+    return list;
   }
 
   QW.Scenes.register('overworld', OW);

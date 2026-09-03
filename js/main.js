@@ -142,7 +142,7 @@
     G.seed = (Math.random() * 0xffffffff) >>> 0;
     G.flags = {}; G.codex = {};
     G.stats = { kills: 0, crafted: 0, bosses: 0 };
-    G.log = { seen: {}, died: {}, deaths: 0, match: {} };
+    G.log = { seen: {}, died: {}, deaths: 0, match: {}, rec: QW.Record.blank() };
     G.dungeons = {};
     G.atStationBench = false; G._finaleRunning = false;
 
@@ -172,6 +172,7 @@
     G.stats = d.stats || { kills: 0, crafted: 0, bosses: 0 };
     G.log = d.log || { seen: {}, died: {}, deaths: 0, match: {} };
     if (!G.log.match) G.log.match = {};                     // eski kayıtlarla uyum
+    if (!G.log.rec) G.log.rec = QW.Record.blank();
     G.dungeons = {};   // zindanlar tohumdan yeniden üretilir, ilerleme aşağıda geri yüklenir
     G._dungeonState = d.dungeonState || {};
 
@@ -267,6 +268,49 @@
   };
 
   /* ------------------------------------------------------------------
+   * YANSIMA — tekrar eden ayna
+   *
+   * Önceki hâlde Yansıma yalnızca finalde bir kez çıkıyordu: bir patron,
+   * bir savaş, bitti. Oysa bir aynanın işe yaraması için oyuncuyu YOLDA
+   * yakalaması gerekir. Klasiklerde rakip altı kez gelir ve her seferinde
+   * seni ölçer. Burada Yansıma parça sayısına göre üç kez belirir; ilk
+   * ikisinde savaşmaz, yalnızca kaydını sana geri okur.
+   *
+   * Söyledikleri sabit değil: ne yaptıysan onu söyler.
+   * ---------------------------------------------------------------- */
+  G.echoStage = function () {
+    const f = QW.Inventory.count('core_fragment');
+    if (f >= 5) return 3;
+    if (f >= 3) return 2;
+    if (f >= 1) return 1;
+    return 0;
+  };
+
+  G.checkEcho = function () {
+    const st = G.echoStage();
+    if (st < 1 || st > 2) return false;             // 3. aşama finalde
+    if (G.flags['echo_seen_' + st]) return false;
+    G.setFlag('echo_seen_' + st, true);
+    const r = QW.Record.state();
+    const band = QW.Record.band();
+    QW.Audio.stopMusic();
+    QW.Audio.motif('mirror');
+    QW.HUD.glitch(true);
+    setTimeout(() => QW.HUD.glitch(false), 900);
+    /* Ayna ne gördüyse onu söyler */
+    const body = [QW.t('echo_v' + st)];
+    body.push(QW.t(band === 'mender' ? 'echo_mirror_mend'
+                 : band === 'butcher' ? 'echo_mirror_kill'
+                 : r.kills ? 'echo_mirror_mixed' : 'echo_mirror_none',
+                 { k: r.kills, s: r.spares }));
+    QW.Dialog.say(body, {
+      name: QW.t('echo_name'),
+      onDone: () => QW.Audio.fadeMusicTo(QW.World.isNight() ? 'night' : 'overworld')
+    });
+    return true;
+  };
+
+  /* ------------------------------------------------------------------
    * FİNAL — önce kendi yansımanla yüzleşirsin, sonra seçim
    * ---------------------------------------------------------------- */
   G.startFinale = function () {
@@ -290,14 +334,32 @@
     });
   };
 
-  /* Yansıma yenildikten sonra: iki yol */
+  /* ------------------------------------------------------------------
+   * SON SEÇİM — bir menü değil, bir tartışma
+   *
+   * Önceki hâlde final iki düğmeydi ve oyuncu ikisini de ilk kez orada
+   * görüyordu. Artık seçim, aylardır birlikte çalıştığın iki insanın
+   * anlaşamadığı bir sorudur: Eko silmeni ister, Tome gömmeni. Hangisini
+   * seçersen seç birini kırarsın — ve o kırılma finalde yazılır.
+   *
+   * Konuştuğun kişiler seçeneğin yanında durur. Onlarla hiç konuşmadıysan
+   * seçim yine önüne gelir, ama savunmasız gelir: bu da bir sonuçtur.
+   * ---------------------------------------------------------------- */
   G.finalChoice = function () {
     QW.Audio.fadeMusicTo('finale');
-    QW.Dialog.say([QW.t('echo_end'), QW.t('fin_text')], {
+    const metEko = QW.NPCState.of('eko').met;
+    const metTome = QW.NPCState.of('tome').met;
+    const body = [QW.t('echo_end'), QW.t('fin_text')];
+    if (metEko || metTome) body.push(QW.t('fin_voices'));
+    else body.push(QW.t('fin_alone'));
+
+    QW.Dialog.say(body, {
       name: QW.t('fin_title'),
       choices: [
-        { label: QW.t('fin_erase'), fn: () => G.ending('erase') },
-        { label: QW.t('fin_bury'), fn: () => G.ending('bury') }
+        { label: QW.t('fin_erase') + (metEko ? QW.t('fin_by', { name: QW.t('npc_eko_short') }) : ''),
+          fn: () => G.ending('erase') },
+        { label: QW.t('fin_bury') + (metTome ? QW.t('fin_by', { name: QW.t('npc_tome_short') }) : ''),
+          fn: () => G.ending('bury') }
       ]
     });
   };
@@ -324,6 +386,24 @@
       title.textContent = QW.t('fin_bury_t');
       text.textContent = QW.t('fin_bury_1') + '\n\n' + QW.t('fin_bury_2') + '\n\n' + QW.t('fin_bury_3');
     }
+    /* --- KAYIT FİNALE YAZILIR -------------------------------------
+       Son metin herkes için aynı değildir. Nasıl oynadığın, kimi kırdığın
+       ve elinin ne kadar temiz olduğu burada geri döner. Seçim ücretsiz
+       değildir; kaydın da öyle. */
+    const r = QW.Record.state();
+    const band = QW.Record.band();
+    text.textContent += '\n\n' + QW.t('fin_toll_' + band, { k: r.kills, s: r.spares });
+
+    /* Kırdığın kişi: seçtiğinin karşısında duran, tanıdığın insan */
+    const brokeId = choice === 'erase' ? 'tome' : 'eko';
+    const keptId = choice === 'erase' ? 'eko' : 'tome';
+    if (QW.NPCState.of(brokeId).met) {
+      text.textContent += '\n\n' + QW.t('fin_broke_' + brokeId);
+    }
+    if (QW.NPCState.of(keptId).met) {
+      text.textContent += '\n' + QW.t('fin_kept_' + keptId);
+    }
+
     text.textContent += '\n\n' + QW.t('fin_epitaph', {
       d: QW.World.day, l: QW.Player.level, b: bosses + '/' + all.length,
       c: QW.t(choice === 'erase' ? 'fin_c_erase' : 'fin_c_bury')
@@ -369,6 +449,7 @@
 
     QW.bus.on('enemy_killed', () => { G.stats.kills++; });
     QW.bus.on('boss_killed', () => { G.stats.bosses++; });
+    QW.bus.on('boss_relieved', () => { G.stats.bosses++; });
     QW.bus.on('craft', () => { G.stats.crafted++; });
 
     /* İstasyon tezgâhı yalnızca istasyonun yanındayken aktif */

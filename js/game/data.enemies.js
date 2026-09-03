@@ -10,6 +10,12 @@
   const E = {};
   function en(id, o) { o.id = id; E[id] = o; return o; }
 
+  /* `mind: true` — bu yaratığın ZİHNİ vardır: acı duyar, bir şey ister.
+     Onu öldürmek kask kaydına geçer ve dünya bunu hatırlar. İşaretsiz
+     olanlar makine ya da güdüyle hareket eden hayvandır; onları sökmek
+     kimseye bir şey yapmaz. Ayrım kasıtlı olarak dardır: oyun "hiçbir şeyi
+     öldürme" demez, yalnızca neyin ağırlığı olduğunu söyler. */
+
   /* ------------------------- SIRADAN DÜŞMANLAR ------------------------- */
   en('scrap_crawler', {
     name: { tr: 'Hurda Sürüngeni', en: 'Scrap Crawler' },
@@ -121,7 +127,7 @@
 
   /* --------------------------- BÖLGE HÂKİMLERİ --------------------------- */
   en('boss_ice_worm', {
-    boss: true, biomeBoss: 'glacier',
+    mind: true, boss: true, biomeBoss: 'glacier',
     name: { tr: 'Buz Solucanı', en: 'Ice Worm' },
     biome: ['glacier'], lvl: 10, hp: 320, atk: 26, def: 14, spd: 6, xp: 200, ec: 180,
     weak: 'vent', resist: { cold: 1 }, vuln: { heat: 1.6 },
@@ -139,7 +145,7 @@
   });
 
   en('boss_acid_golem', {
-    boss: true, biomeBoss: 'swamp',
+    mind: true, boss: true, biomeBoss: 'swamp',
     name: { tr: 'Asit Golemi', en: 'Acid Golem' },
     biome: ['swamp'], lvl: 12, hp: 380, atk: 30, def: 18, spd: 4, xp: 240, ec: 210,
     weak: 'core', resist: { acid: 1 }, vuln: { cold: 1.5 },
@@ -156,7 +162,7 @@
   });
 
   en('boss_sand_leviathan', {
-    boss: true, biomeBoss: 'desert',
+    mind: true, boss: true, biomeBoss: 'desert',
     name: { tr: 'Kum Leviathanı', en: 'Sand Leviathan' },
     biome: ['desert'], lvl: 11, hp: 340, atk: 28, def: 12, spd: 9, xp: 220, ec: 195,
     weak: 'optics', vuln: { shock: 1.5 },
@@ -173,7 +179,7 @@
   });
 
   en('boss_spore_titan', {
-    boss: true, biomeBoss: 'forest',
+    mind: true, boss: true, biomeBoss: 'forest',
     name: { tr: 'Spor Devi', en: 'Spore Titan' },
     biome: ['forest'], lvl: 13, hp: 420, atk: 27, def: 16, spd: 5, xp: 260, ec: 230,
     weak: 'vent', vuln: { heat: 1.4 },
@@ -191,7 +197,7 @@
   });
 
   en('boss_storm_harrier', {
-    boss: true, biomeBoss: 'canyon',
+    mind: true, boss: true, biomeBoss: 'canyon',
     name: { tr: 'Fırtına Harrier\'ı', en: 'Storm Harrier' },
     biome: ['canyon'], lvl: 14, hp: 360, atk: 34, def: 13, spd: 16, xp: 300, ec: 260,
     weak: 'joint', vuln: { shock: 1.3 },
@@ -281,7 +287,7 @@
 
   /* --------------------- ANLATI HÂKİMLERİ --------------------- */
   en('boss_memory_alpha', {
-    boss: true, story: true,
+    mind: true, boss: true, story: true,
     name: { tr: 'Hafıza Bekçisi Alpha', en: 'Memory Keeper Alpha' },
     biome: ['plains'], lvl: 9, hp: 280, atk: 22, def: 11, spd: 7, xp: 170, ec: 140,
     weak: 'core', vuln: { shock: 1.4 },
@@ -299,7 +305,7 @@
   });
 
   en('boss_lost_leviathan', {
-    boss: true, story: true,
+    mind: true, boss: true, story: true,
     name: { tr: 'Kayıp Leviathan', en: 'The Lost Leviathan' },
     biome: ['swamp'], lvl: 8, hp: 240, atk: 20, def: 9, spd: 5, xp: 150, ec: 120,
     weak: 'joint', resist: { acid: 1 }, vuln: { cold: 1.4 },

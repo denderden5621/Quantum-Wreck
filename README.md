@@ -315,6 +315,66 @@ Kuantum Yansıması'nda **tersten**, "silmek" finalinde her nota bir öncekinden
 alçak sönerek, "bırakmak" finalinde bir oktav yukarı açılarak. Aynı melodiyi
 tanımak, oyuncunun hikâyeyi duymasıdır.
 
+### Bedel — mekaniğin anlattığı şey
+Oyunun anlatısı diyalogda değil **mekanikte** durur.
+
+Karşındaki her şey eşit değildir. Hurda sürüngeni bir makinedir. Ama bazı
+yaratıkların **zihni** vardır (`mind: true`): acı duyarlar, bir şey isterler.
+Oyun "hiçbir şeyi öldürme" gibi mutlak bir kural koymaz — yalnızca neyin
+ağırlığı olduğunu söyler. Zihni olan 7 yaratık var.
+
+Bunları iki türlü bitirebilirsin:
+
+| | Öldürmek | Onarmak |
+|---|---|---|
+| Süre | Hızlı | Yavaş (önce teşhis, bir tur) |
+| Maliyet | Yok | Malzeme + doğru alet |
+| Ödül | XP, EC, ganimet | Hiçbiri |
+| Çekirdek parçası | Cesetten alınır | **Yaratık kendisi verir** |
+| Kayıt | "öldürüldü" | "onarıldı" |
+
+İkincisi bu oyuna özgüdür. Burada merhamet "kibar olmak" değildir: bir
+mühendislik oyunu oynuyorsun ve bir yaratığı **arızasını teşhis edip
+onararak** bağışlarsın. Buz Solucanı donmuyor, *yanıyor* — termal
+düzenleyicisi bozuk. Kum Leviathanı kör; cam tozu optiklerini kazımış.
+Fırtına Harrier'ı öfkeli değil; bir kanadı trim tutmuyor ve düşmemek için
+dönmek zorunda. Teşhis için doğru alet (radar, hava sensörü, multimetre),
+onarım için malzeme gerekir. Merhamet ucuz değil, **pahalıdır**.
+
+Oyuncunun kim olduğu bunu gerekçelendirir: Göktay mürettebat listesi, sıra 7
+— **bakım teknisyeni**. Silah eğitimi yok. Kahraman değilsin, tamircisin.
+
+**Dünya kaydı okur.** Kask kaydı ne yaptığını tutar ve üç bandı vardır
+(*onaran / işaretli / kasap*). NPC'ler bandın değiştiğini fark eder ve bir kez
+yorum yapar. Yansıma kaydını sana geri okur. Final metni kaydın üstüne yazılır.
+
+### Yansıma — tekrar eden ayna
+Önceki hâlde Yansıma yalnızca finalde bir kez çıkıyordu: bir patron, bir
+savaş, bitti. Bir aynanın işe yaraması için oyuncuyu **yolda** yakalaması
+gerekir. Artık parça sayısına göre üç kez belirir (1, 3, 5). İlk ikisinde
+savaşmaz — kaydını kendi sesinle sana geri okur, ve söyledikleri sabit
+değildir:
+
+> *"3 tanesi." Kendi sesin, hiç vurgusuz. "Hiçbiri sana saldırmak
+> istememişti. Hepsinin bir arızası vardı ve sen hiçbirine bakmadın."*
+
+Savaştığında da gücü kaydından gelir: çok öldürdüysen o da vurur.
+
+### Son seçim — menü değil, tartışma
+Final iki düğmeydi ve oyuncu ikisini de ilk kez orada görüyordu. Artık
+seçim, **aylardır birlikte çalıştığın iki insanın anlaşamadığı bir sorudur**:
+
+- **Eko** (Yeraltı Sinyalcisi) **silmeni** ister. 31 yıldır ablası İlkay'a tek
+  bir mesajı tekrar tekrar kaydedip yayınlıyor. Her kopyalamada biraz daha
+  gitti; artık neredeyse yalnızca hışırtı. *"Bir mesajı otuz bir yıl üst üste
+  kaydedersen geriye mesaj kalmaz — gürültü kalır. Bu dünya da öyle."*
+- **Tome** (Arşivci) **gömmeni** ister. Her şeyi kaydeder, seni dahil. *"Bir
+  şeyin kaydı varsa yaşamıştır; bir şey yaşıyorsa devam edebilir."*
+
+Hangisini seçersen seç birini kırarsın ve o kırılma final metnine yazılır.
+Onlarla hiç konuşmadıysan seçim yine önüne gelir — ama savunmasız gelir,
+ve final bunu da söyler.
+
 ### Anlatı hattı · The story
 - **Çöken Arşiv** — yarı gömülü bir kubbe. İçeride titrek mavi bir hologram,
   gökyüzüne bakarak bekleyen bir halkı sessiz bir pandomimle gösterir ve döngü
@@ -337,6 +397,32 @@ tanımak, oyuncunun hikâyeyi duymasıdır.
 - **İki son** — çekirdeği onarıp zamanı bükerek Dünya'nın bu karanlık sonunu
   tamamen silmek, ya da parçaları toprağa gömüp yaralı ekosistemin küllerinden
   evrimleşmesine izin vermek. Seçim geri alınmaz ve kayıt oyun bitince silinir.
+
+### Karakterler — istek, sır, duruş
+Önceki hâlde her NPC bir otomattı: üç selamlama cümlesi, bir takas tablosu,
+sonsuza kadar tekrar. Ticaret yapıyordun ama kimseyi tanımıyordun. Artık her
+karakterin üç şeyi var — **istediği** (takas masasındaki şey, zaten vardı),
+**neden istediği** (yoktu) ve **finalde savunduğu şey** (yoktu).
+
+| Karakter | İstek | Sır | Duruş |
+|---|---|---|---|
+| **Eko** | Kaset mekanizmaları, CD lensleri | 31 yıldır ablası İlkay'a yayın yapıyor; bant her kopyada biraz daha yok oldu | Sil |
+| **Tome** | Veri kristalleri | Son kütüphaneyi arşivliyor — ve senin de bir dosyan var | Göm |
+| **Krank** | İşlenmiş titanyum kablo | Dört yıldır bir vinç yapıyor: kanyonun dibinde ortağı Sevgi'nin roveri var, öldüğünü biliyor, durmak kabul etmek olurdu | — |
+| **Valkyrie** | Aerodinamik veri | Gökyüzünün bitip bitmediğini görecek kadar yükseğe çıkmak istiyor. Haklı çıkacak | — |
+| **Vela** | — | İstasyon iki kampa bölündü ve o taraf tutmuyor | — |
+| **Odd** | — | Bilerek değişmeyen tek karakter: iki uçta da kazanır | — |
+
+Yay konuşma sayacıyla değil, oyuncunun **dünyada başardıklarıyla** açılır:
+takas yaptın mı, iletişim modülünü kurdun mu, diski açtın mı, kaç parça
+taşıyorsun. Karakter oyuncuya eşlik eder, onun konuşmalarını saymaz. Bir
+aşamayı ilk açtığında bütün satırlarını okursun; sonraki uğrayışlarda
+yalnızca son satır gelir — tüccara her gidişte üç sayfa ilerlemek karakteri
+derinleştirmez, yalnızca yorar.
+
+Krank'ın vinci bir görevdir (`q_winch`): kabloyu ve servoları getirirsen
+birlikte çekersiniz. Kabin boş çıkar, emniyet kemeri çözülmüştür. *"Dört yıl
+yanlış şeyi çektim. Ama çektim."* Karakterin yayını kapatan tek şey oyuncudur.
 
 ### NPC'ler ve takas ekonomisi
 Kamplar her yeni oyunda rastgele konumlanır.

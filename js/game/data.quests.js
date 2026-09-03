@@ -176,6 +176,22 @@
     reward: { ec: 140, items: { cassette_mech: 1, cd_lens: 1 } }
   });
 
+  /* Krank'ın dört yıllık vinci. Kablo istemesinin gerçek sebebi budur;
+     görev bittiğinde bir ceset değil, boş bir kabin bulunur — ve Krank
+     bunu kaldırabilir. Karakterin yayını kapatan tek şey oyuncudur. */
+  q('q_winch', {
+    field: true,
+    name: { tr: 'Dört Yıllık Vinç', en: 'The Four-Year Winch' },
+    desc: { tr: 'Krank kanyonun dibindeki roveri çıkarmak için bir vinç kuruyor. Son parçalar eksik.',
+            en: 'Krank is building a winch to raise the rover at the bottom of the canyon. The last parts are missing.' },
+    steps: [
+      { type: 'collect', target: 'ti_wire', n: 6, text: { tr: 'Vinç için kablo çek', en: 'Draw cable for the winch' } },
+      { type: 'collect', target: 'servo', n: 2, text: { tr: 'Servo motor bul', en: 'Find servo motors' } },
+      { type: 'flag', target: 'krank_winch', text: { tr: 'Vinci Krank ile birlikte çalıştır', en: 'Run the winch with Krank' } }
+    ],
+    reward: { ec: 220, items: { ti_wire: 2, disc_brake: 1 }, codex: 'c_krank' }
+  });
+
   q('q_storm', {
     field: true,
     name: { tr: 'Fırtınada Ayakta', en: 'Standing in the Storm' },
@@ -269,6 +285,13 @@
     c_oasis: { name: { tr: 'Kuruyan Vaha', en: 'The Drying Oasis' },
       text: { tr: 'Merkezine saplanan bir çekirdek parçası bu havzayı asit gölüne çevirmişti. Kıyıdaki taşlaşmış hayvanlar suya uzanırken donmuştu. Leviathan bir canavar değil, mutasyona uğramış bir muhafızdı; devrildiğinde asit toprağa çekildi ve çatlaklardan temiz su yükseldi.',
               en: 'A core shard driven into its centre turned this basin into a lake of acid. The petrified animals on the shore froze mid-reach. The Leviathan was no monster but a mutated guardian; when it fell the acid drained away and clean water rose through the cracks.' } },
+    /* Oyuncunun kim olduğu. Boş bir avatar yerine BİR MESLEK: Göktay'ın
+       tamir teknisyeni. Bu tek satır oyunun bütün merhamet mekaniğini
+       gerekçelendirir — burada bir şeyi bağışlamak onu ONARMAK demektir,
+       çünkü senin bildiğin iş budur. Kahraman değilsin; tamircisin. */
+    c_self: { name: { tr: 'Mürettebat Kaydı — Sen', en: 'Crew Record — You' },
+      text: { tr: 'Göktay mürettebat listesi, sıra 7: BAKIM TEKNİSYENİ. Silah eğitimi yok. Sertifikalar: basınç kaynağı, devre onarımı, saha teşhisi, hidrolik ve mekanik fren sistemleri.\n\nBu gezegende karşına çıkan her şeyin bir arızası var. Sen bu gemide tam olarak bunun için vardın: kimse bakmadığında bakan kişi. Kimse seni savaşmak üzere eğitmedi — bu bir eksiklik değil, elindeki tek gerçek avantaj.',
+              en: 'Göktay crew manifest, line 7: MAINTENANCE TECHNICIAN. No weapons training. Certified: pressure welding, circuit repair, field diagnostics, hydraulic and mechanical brake systems.\n\nEverything you meet on this planet has a fault. This is exactly what you were aboard for: the one who looks when nobody else does. Nobody trained you to fight — that is not a shortfall, it is the only real advantage you have.' } },
     c_truth: { name: { tr: 'Yıldız Haritaları', en: 'The Star Charts' },
       text: { tr: 'Alpha’nın diski bir gezegen kataloğu değil, bir mezar taşıydı. Takımyıldızlar tanıdık ama milyonlarca yıllık bir kayma göstermekte; Güneş listede, yalnızca daha küçük ve daha soluk. Bu yabancı gezegen yabancı değil. Kuantum anomalisi zamanı kırdığında gemi uzayda değil, zamanda savruldu.',
               en: 'Alpha’s disk was not a planetary catalogue but a headstone. The constellations are familiar, drifted by millions of years; the Sun is listed, only smaller and dimmer. This alien planet is not alien. When the anomaly broke time, the ship was flung not across space but along it.' } },

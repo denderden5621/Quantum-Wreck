@@ -156,6 +156,27 @@
           menu = 'tactic'; Battle.buildActions();
         }));
         el.actions.appendChild(cbtn(QW.t('cb_item'), '', () => { menu = 'item'; Battle.buildActions(); }));
+
+        /* ONARIM YOLU — yalnızca zihni olan yaratıklarda görünür.
+           Önce teşhis (alet gerekir), sonra onarım (malzeme gerekir).
+           Görünmesi bile bir bilgidir: bu şeyin bir arızası var demektir. */
+        const rs = QW.Combat.reliefState();
+        if (rs) {
+          if (!rs.diagnosed) {
+            el.actions.appendChild(cbtn(
+              QW.t('cb_diagnose'),
+              rs.hasTool ? QW.t('cb_diagnose_d') : QW.t('cb_need_dev', { name: QW.Items.name(rs.rel.tool) }),
+              () => { QW.Combat.playerDiagnose(); Battle.afterAction(); },
+              !rs.hasTool, 'syn'));
+          } else {
+            el.actions.appendChild(cbtn(
+              QW.L(rs.rel.verb),
+              rs.ok ? QW.t('cb_relief_d') : QW.t('cb_relief_need', { list: rs.missing.join(', ') }),
+              () => { QW.Combat.playerRelieve(); Battle.afterAction(); },
+              !rs.ok, 'syn'));
+          }
+        }
+
         el.actions.appendChild(cbtn(QW.t('cb_flee'), s.boss ? QW.t('cb_boss') : '', () => {
           QW.Combat.playerFlee(); Battle.afterAction();
         }, false, 'back'));
@@ -226,6 +247,15 @@
         }
         /* Anlatı hâkimlerinin kendi sessiz sonları var */
         storyOutcome = s.e.meta.id;
+      } else if (res.outcome === 'relief') {
+        /* Onarım: XP yok, ganimet yok, ölüm yok. Kayıt bunu ayrı tutar. */
+        pushLog(QW.t('cb_relief_done', { name: s.e.name }));
+        if (res.fragment) { pushLog(QW.t('cb_frag_given')); QW.Audio.sfx('fragment'); QW.HUD.flash(400); }
+        if (s.boss && entity.poi) {
+          const poi = QW.World.getPoi(entity.poi);
+          if (poi) poi.cleared = true;
+        }
+        storyOutcome = s.e.meta.id;
       } else if (res.outcome === 'lose') {
         pushLog(QW.t('cb_lose'));
         QW.Audio.sfx('death');
@@ -238,7 +268,7 @@
     close() {
       const s = QW.Combat.s;
       const outcome = s ? s.over : 'fled';
-      const story = outcome === 'win' ? storyOutcome : null;
+      const story = (outcome === 'win' || outcome === 'relief') ? storyOutcome : null;
       if (outcome !== 'lose') {
         /* Yenilen ya da kaçılan düşman haritadan silinir */
         QW.Entities.list = QW.Entities.list.filter(e => e !== entity);
@@ -264,6 +294,9 @@
         }
         setTimeout(() => { if (QW.Scenes.is('dungeon')) QW.Scenes.pop(); }, 700);
       }
+      /* Parça sayısı bir eşiği geçtiyse Yansıma yolda belirir */
+      if (QW.Game.checkEcho()) return;
+
       if (bossId === 'boss_memory_alpha') {
         QW.Audio.stopMusic();
         QW.Audio.motif('grief');

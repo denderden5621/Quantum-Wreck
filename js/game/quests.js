@@ -101,16 +101,22 @@
       Q.counters['kill_' + id] = (Q.counters['kill_' + id] || 0) + 1;
       Q.evaluateAll();
     });
-    QW.bus.on('boss_killed', id => {
+    /* Bir hâkimle işin bitmesi, onu ÖLDÜRMEKLE aynı şey değildir — ama
+       görev akışı açısından ikisi de "çözüldü" sayılır. Fark kask
+       kaydında ve dünyanın tepkisinde durur, ilerlemede değil: onaran
+       oyuncu cezalandırılmaz, yalnızca farklı bir iz bırakır. */
+    const bossQuest = {
+      boss_ice_worm: 'q_boss_glacier', boss_acid_golem: 'q_boss_swamp',
+      boss_sand_leviathan: 'q_boss_desert', boss_spore_titan: 'q_boss_forest',
+      boss_storm_harrier: 'q_boss_canyon'
+    };
+    function bossResolved(id) {
       QW.Game.setFlag('boss_' + id, true);
-      const map = {
-        boss_ice_worm: 'q_boss_glacier', boss_acid_golem: 'q_boss_swamp',
-        boss_sand_leviathan: 'q_boss_desert', boss_spore_titan: 'q_boss_forest',
-        boss_storm_harrier: 'q_boss_canyon'
-      };
-      if (map[id]) { Q.start(map[id]); Q.evaluate(map[id]); }
+      if (bossQuest[id]) { Q.start(bossQuest[id]); Q.evaluate(bossQuest[id]); }
       Q.evaluateAll();
-    });
+    }
+    QW.bus.on('boss_killed', bossResolved);
+    QW.bus.on('boss_relieved', bossResolved);
     QW.bus.on('npc_met', npcId => {
       const def = QW.NPCs.get(npcId);
       if (def && def.quest) Q.start(def.quest);
