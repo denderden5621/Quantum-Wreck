@@ -199,6 +199,8 @@
       const ox = sx - (size.w >> 1), oy = sy - size.h + 4;
       ctx.fillStyle = 'rgba(0,0,0,0.32)';
       ctx.fillRect(ox + 1, sy + 2, size.w - 2, 2);
+      const sz = QW.Sprites.creatureSize(e.def.sprite.s);
+      QW.Sprites.shadow(ctx, ox + sz.w / 2, oy + sz.h, Math.max(7, sz.w - 2));
       QW.Sprites.creature(ctx, ox, oy, e.def.sprite, 1, e.flip);
       /* Saldırgan işareti */
       if (e.state === 'chase') {

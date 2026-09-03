@@ -77,6 +77,29 @@
   };
   P.dot = function (ctx, x, y, col) { ctx.fillStyle = col; ctx.fillRect(x | 0, y | 0, 1, 1); };
 
+  /* --------------------------------------------------------------
+   * 16-BİT KABARTMA ÇERÇEVE
+   *
+   * Tek renk bir dikdörtgen çizgi 8-bit arayüzüdür. 16-bit menülerinde
+   * çerçeve KABARTMADIR: üst-sol kenar ışık alır, alt-sağ kenar gölgede
+   * kalır; panel düz bir çizim değil, yüzeyden yükselen bir levha olur.
+   * -------------------------------------------------------------- */
+  P.bevel = function (ctx, x, y, w, h, col, t) {
+    t = t || 1;
+    x |= 0; y |= 0; w |= 0; h |= 0;
+    const lit = U.rampStep(col, 0.40);
+    const shd = U.rampStep(col, -0.38);
+    ctx.fillStyle = lit;                       // üst ve sol: ışık
+    ctx.fillRect(x, y, w, t);
+    ctx.fillRect(x, y, t, h);
+    ctx.fillStyle = shd;                       // alt ve sağ: gölge
+    ctx.fillRect(x, y + h - t, w, t);
+    ctx.fillRect(x + w - t, y, t, h);
+    ctx.fillStyle = col;                       // köşe uzlaştırması
+    ctx.fillRect(x + w - t, y, t, t);
+    ctx.fillRect(x, y + h - t, t, t);
+  };
+
   /* Bayer 4x4 tarama — biyom geçişlerini dikişsiz harmanlar */
   const BAYER4 = [
     [0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]

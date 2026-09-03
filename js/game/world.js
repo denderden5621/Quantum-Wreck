@@ -19,19 +19,68 @@
   /* Geçilebilirlik türleri */
   const T = { WALK: 0, WATER: 1, ROCK: 2, CHASM: 3, SWAMP: 4, SAND: 5, RUIN: 6 };
 
+  /* warm : ışık ucunun çekildiği renk (güneşin o biyomdaki karakteri)
+     cool : gölge ucunun çekildiği renk (gökyüzü dönüş ışığı)
+     spread: rampa kontrastı — kaya sert, bitki örtüsü yumuşak
+     rough: yamaç gölgelendirmesinin şiddeti (0 = düz, 1 = sarp)          */
   const BIOMES = {
-    sea:      { key: 'sea',      t: T.WATER, base: '#16324f', alt: '#1d4a72', det: '#3f8fb8', name: 'b_sea' },
-    shore:    { key: 'shore',    t: T.WALK,  base: '#c2b083', alt: '#ac9a70', det: '#ded0a6', name: 'b_shore' },
-    desert:   { key: 'desert',   t: T.SAND,  base: '#d6bf85', alt: '#c1a86c', det: '#efe6c2', name: 'b_desert' },
-    plains:   { key: 'plains',   t: T.WALK,  base: '#6d7360', alt: '#5b6150', det: '#8a9077', name: 'b_plains' },
-    forest:   { key: 'forest',   t: T.WALK,  base: '#3d5645', alt: '#324a3a', det: '#7d5aa0', name: 'b_forest' },
-    glacier:  { key: 'glacier',  t: T.WALK,  base: '#cbe2f0', alt: '#b2d0e4', det: '#8fbcd8', name: 'b_glacier' },
-    swamp:    { key: 'swamp',    t: T.SWAMP, base: '#46543a', alt: '#3a4a30', det: '#89b444', name: 'b_swamp' },
-    canyon:   { key: 'canyon',   t: T.WALK,  base: '#8a5c3c', alt: '#754a2f', det: '#a97a52', name: 'b_canyon' },
-    chasm:    { key: 'chasm',    t: T.CHASM, base: '#140f0c', alt: '#241a14', det: '#3a2a20', name: 'b_canyon' },
-    mountain: { key: 'mountain', t: T.ROCK,  base: '#79808e', alt: '#666d7b', det: '#98a0ae', name: 'b_mountain' },
-    wreck:    { key: 'wreck',    t: T.WALK,  base: '#5c6270', alt: '#4a5060', det: '#8a94a8', name: 'b_wreck' }
+    sea:      { key: 'sea',      t: T.WATER, base: '#16324f', alt: '#1d4a72', det: '#3f8fb8', name: 'b_sea',
+                warm: '#7fd8e8', cool: '#0a1430', spread: 0.34, rough: 0.15 },
+    shore:    { key: 'shore',    t: T.WALK,  base: '#c2b083', alt: '#ac9a70', det: '#ded0a6', name: 'b_shore',
+                warm: '#ffe9b0', cool: '#2a3358', spread: 0.30, rough: 0.35 },
+    desert:   { key: 'desert',   t: T.SAND,  base: '#d6bf85', alt: '#c1a86c', det: '#efe6c2', name: 'b_desert',
+                warm: '#fff0bc', cool: '#4a3a62', spread: 0.32, rough: 0.55 },
+    plains:   { key: 'plains',   t: T.WALK,  base: '#6d7360', alt: '#5b6150', det: '#8a9077', name: 'b_plains',
+                warm: '#d8d98a', cool: '#22304a', spread: 0.38, rough: 0.45 },
+    forest:   { key: 'forest',   t: T.WALK,  base: '#3d5645', alt: '#324a3a', det: '#7d5aa0', name: 'b_forest',
+                warm: '#a8c46a', cool: '#141f38', spread: 0.44, rough: 0.50 },
+    glacier:  { key: 'glacier',  t: T.WALK,  base: '#cbe2f0', alt: '#b2d0e4', det: '#8fbcd8', name: 'b_glacier',
+                warm: '#ffffff', cool: '#2e4a80', spread: 0.34, rough: 0.60 },
+    swamp:    { key: 'swamp',    t: T.SWAMP, base: '#46543a', alt: '#3a4a30', det: '#89b444', name: 'b_swamp',
+                warm: '#9fc45a', cool: '#16221c', spread: 0.40, rough: 0.25 },
+    canyon:   { key: 'canyon',   t: T.WALK,  base: '#8a5c3c', alt: '#754a2f', det: '#a97a52', name: 'b_canyon',
+                warm: '#f0b070', cool: '#2e1e3e', spread: 0.48, rough: 0.95 },
+    chasm:    { key: 'chasm',    t: T.CHASM, base: '#140f0c', alt: '#241a14', det: '#3a2a20', name: 'b_canyon',
+                warm: '#5a4030', cool: '#000000', spread: 0.55, rough: 1.00 },
+    mountain: { key: 'mountain', t: T.ROCK,  base: '#79808e', alt: '#666d7b', det: '#98a0ae', name: 'b_mountain',
+                warm: '#e6e2d0', cool: '#26304e', spread: 0.50, rough: 1.00 },
+    wreck:    { key: 'wreck',    t: T.WALK,  base: '#5c6270', alt: '#4a5060', det: '#8a94a8', name: 'b_wreck',
+                warm: '#c8d4e8', cool: '#1a2036', spread: 0.42, rough: 0.40 }
   };
+
+  /* ------------------------------------------------------------------
+   * 16-BİT BİYOM RAMPALARI
+   *
+   * Her biyom artık 3 değil 9 tona sahip. Rampa taban renkten hue
+   * kaydırmalı olarak türetilir: gölge soğur ve doygunlaşır, ışık ısınır
+   * ve solar. `warm` her biyomun ışık karakterini ayarlar (çöl sıcak,
+   * buzul soğuk), `spread` kontrastı belirler (kaya sert, bataklık yumuşak).
+   * ---------------------------------------------------------------- */
+  const RAMP_N = 9;
+  function buildRamps() {
+    Object.keys(BIOMES).forEach(k => {
+      const b = BIOMES[k];
+      const sp = b.spread === undefined ? 0.40 : b.spread;
+      b.ramp = U.ramp(b.base, RAMP_N, sp);
+      /* Işık ucu biyomun kendi sıcaklığına doğru çekilir */
+      if (b.warm) {
+        for (let i = Math.ceil(RAMP_N / 2); i < RAMP_N; i++) {
+          const t = (i - (RAMP_N - 1) / 2) / ((RAMP_N - 1) / 2);
+          b.ramp[i] = U.mixHex(b.ramp[i], b.warm, t * 0.45);
+        }
+      }
+      /* Gölge ucu ortam rengine (gökyüzü dönüşü) doğru çekilir */
+      const cool = b.cool || '#1b2340';
+      for (let i = 0; i < RAMP_N / 2; i++) {
+        const t = ((RAMP_N - 1) / 2 - i) / ((RAMP_N - 1) / 2);
+        b.ramp[i] = U.mixHex(b.ramp[i], cool, t * 0.30);
+      }
+      b.detRamp = U.ramp(b.det, 5, 0.34);
+      b.altRamp = U.ramp(b.alt, 5, 0.34);
+      b.ao = U.mixHex(b.ramp[0], cool, 0.45);      // kenar gölgesi
+    });
+  }
+  buildRamps();
 
   const Wd = QW.World = {
     TILE, CH, CHPX, W, H, T, BIOMES,
@@ -211,6 +260,7 @@
     if (c) return c;
 
     let e = spread(nElev.n01(tx * 0.0068, ty * 0.0068, 5, 2.0, 0.5), 1.9);
+    let eShade = e;                       // sınırlanmamış yükseklik (gölge için)
     let m = spread(nMoist.n01(tx * 0.011 + 120, ty * 0.011 - 60, 4), 2.2);
     let t = spread(nTemp.n01(tx * 0.0042 - 200, ty * 0.0042 + 90, 3), 2.0);
     /* Kutuplara doğru soğuma — buzullar haritanın kuzey/güney uçlarında */
@@ -229,6 +279,11 @@
       t = U.clamp(t + bias.t * 1.7, 0, 1);
       e = U.clamp(e + bias.e * 1.7, 0, 1);
       rugged = cell.rugged || 0;
+      /* Gölgelendirme için HAM yükseklik: aşağıdaki sınırlayıcılar bölge
+         içinde yüksekliği sabitliyor (biyom kimliğini garanti etmek için).
+         Bu, arazi ışığının girdisini düzleştiriyordu. Biyom seçimi sınırlı
+         değeri kullanmaya devam eder; yamaç ışığı ham alanı okur. */
+      eShade = e;
       /* Sınırlar: bölge kendi karakterine hapsedilir */
       const cl = cell.arch.clamp;
       if (cl) {
@@ -253,6 +308,8 @@
     /* Geçitler ve onlara bağlı koridorlar: duvarı delen yol, daima yürünür */
     const pass = QW.Regions.corridorAt(tx, ty);
     let b;
+    /* Yamaç + sırt kabartması — kenar sönümlemesi uygulanmış HAM yükseklik */
+    Wd._elev.set(key, eShade * U.clamp(edge, 0, 1) + rg * 0.30);
     if (pass) {
       b = (ee < 0.30) ? BIOMES.shore : BIOMES.canyon;
       return cache(key, b);
@@ -272,10 +329,31 @@
   }
 
   function cache(key, b) {
-    if (Wd._biomeCache.size > 240000) Wd._biomeCache.clear();
+    if (Wd._biomeCache.size > 240000) { Wd._biomeCache.clear(); Wd._elev.clear(); }
     Wd._biomeCache.set(key, b);
     return b;
   }
+
+  /* ------------------------------------------------------------------
+   * YÜKSEKLİK ALANI — 16-bit arazi gölgelendirmesinin girdisi
+   *
+   * 8-bit arazi düz bir renk tarlasıdır; 16-bit arazide yamaçlar vardır:
+   * ışığa bakan yüzler açılır, arka yüzler koyulur. Bunun için biyom
+   * seçiminde zaten hesaplanan yükseklik saklanır (yeniden hesaplanmaz).
+   * ---------------------------------------------------------------- */
+  Wd._elev = new Map();
+  Wd.elevAt = function (tx, ty) {
+    const key = tx * 100000 + ty;
+    let v = Wd._elev.get(key);
+    if (v === undefined) {
+      /* Doğrudan rawBiome: biomeAt enkaz sahasında erken döner ve yükseklik
+         hiç yazılmazdı; orası düz bir plato olup çevresinde sahte bir ışık
+         halesi yaratıyordu. Örtü kararını biomeAt yine kendisi veriyor. */
+      rawBiome(tx, ty);
+      v = Wd._elev.get(key);
+    }
+    return v === undefined ? 0.5 : v;
+  };
 
   /* Enkaz sahası, üstteki biyomu ezer */
   Wd.biomeAt = function (tx, ty) {
@@ -544,36 +622,146 @@
 
     const t0x = cx * CH, t0y = cy * CH;
 
+    /* Rampa renklerini bir kez 32-bit'e çevir */
+    const rampCache = new Map();
+    function rampOf(b) {
+      let r = rampCache.get(b);
+      if (!r) {
+        r = { ramp: b.ramp.map(col), det: b.detRamp.map(col), alt: b.altRamp.map(col), ao: col(b.ao) };
+        rampCache.set(b, r);
+      }
+      return r;
+    }
+
+    const MID = (RAMP_N - 1) / 2;
+    let hasWater = false;                 // su parıltısı geçişi için
+
+    /* Yükseklik ızgarası chunk başına BİR kez toplanır (CH+2)².
+       Tile döngüsünde komşu komşu sorgulamak 1280 arama demekti; bu 324. */
+    const EG = CH + 2;
+    const eg = new Float32Array(EG * EG);
+    for (let j = 0; j < EG; j++) {
+      for (let i = 0; i < EG; i++) eg[j * EG + i] = Wd.elevAt(t0x + i - 1, t0y + j - 1);
+    }
+    const egAt = (i, j) => eg[(j + 1) * EG + (i + 1)];
+
+    /* Tile merkezlerindeki YAMAÇ IŞIĞI. Piksel döngüsünde bu ızgara
+       çift doğrusal aradeğerlenir; ışık tile sınırında kırılmaz. Tile
+       başına sabit bir ışık, 16 piksellik yorgan kareleri üretiyordu. */
+    const lg = new Float32Array(EG * EG);
+    for (let j = 0; j < EG; j++) {
+      for (let i = 0; i < EG; i++) {
+        const gx = eg[j * EG + Math.min(EG - 1, i + 1)] - eg[j * EG + Math.max(0, i - 1)];
+        const gy = eg[Math.min(EG - 1, j + 1) * EG + i] - eg[Math.max(0, j - 1) * EG + i];
+        const bb = Wd.biomeAt(t0x + i - 1, t0y + j - 1);
+        const rg2 = bb.rough === undefined ? 0.5 : bb.rough;
+        let v = (-gx * 0.62 - gy * 0.78) * 38 * rg2;
+        lg[j * EG + i] = v < -3.2 ? -3.2 : v > 3.2 ? 3.2 : v;
+      }
+    }
+    const lgAt = (i, j) => lg[(j + 1) * EG + (i + 1)];
+
     for (let ly = 0; ly < CH; ly++) {
       for (let lx = 0; lx < CH; lx++) {
         const tx = t0x + lx, ty = t0y + ly;
         const b = Wd.biomeAt(tx, ty);
-        /* Komşu biyomlar — kenar harmanlaması için */
+        if (b.t === T.WATER) hasWater = true;
+        /* Komşu biyomlar — kenar harmanlaması ve kenar gölgesi için */
         const nb = [Wd.biomeAt(tx, ty - 1), Wd.biomeAt(tx + 1, ty),
                     Wd.biomeAt(tx, ty + 1), Wd.biomeAt(tx - 1, ty)];
+        const R = rampOf(b);
 
-        const base = col(b.base), alt = col(b.alt), det = col(b.det);
+        /* --- YAMAÇ IŞIĞI ---------------------------------------------
+           Işık sol üstten gelir (16-bit arazi sanatının değişmez kuralı).
+           Yükseklik alanının eğimi alınır: ışığa bakan yamaç rampada
+           yukarı, arka yamaç aşağı kayar. Düz araziyi bir renk tarlası
+           olmaktan çıkarıp yüzeye çeviren şey budur. */
+        const eC = egAt(lx, ly);
+        /* Tile'ın dört köşesindeki ışık: merkez ile komşuların ortalaması.
+           Piksel döngüsü bunların arasını doğrusal olarak dolduracak. */
+        const l00 = lgAt(lx, ly);
+        const lTL = (l00 + lgAt(lx - 1, ly) + lgAt(lx, ly - 1) + lgAt(lx - 1, ly - 1)) * 0.25;
+        const lTR = (l00 + lgAt(lx + 1, ly) + lgAt(lx, ly - 1) + lgAt(lx + 1, ly - 1)) * 0.25;
+        const lBL = (l00 + lgAt(lx - 1, ly) + lgAt(lx, ly + 1) + lgAt(lx - 1, ly + 1)) * 0.25;
+        const lBR = (l00 + lgAt(lx + 1, ly) + lgAt(lx, ly + 1) + lgAt(lx + 1, ly + 1)) * 0.25;
+        const tileLit = l00;
+
+        /* --- KENAR GÖLGESİ (AO) --------------------------------------
+           Su, uçurum ve kaya kenarına komşu tile'lar koyulur; yükseklik
+           farkı olan yerde zemin "oturur". */
+        let aoN = 0;
+        for (let i = 0; i < 4; i++) {
+          const o = nb[i];
+          if (o === b) continue;
+          if (o.t === T.WATER || o.t === T.CHASM) aoN |= (1 << i);
+          else if (egAt(lx + (i === 1 ? 1 : i === 3 ? -1 : 0),
+                        ly + (i === 0 ? -1 : i === 2 ? 1 : 0)) > eC + 0.045) aoN |= (1 << i);
+        }
+
+        /* Kenar harmanlaması kararları — tile başına bir kez */
+        const eN = nb[0] !== b, eE = nb[1] !== b, eS = nb[2] !== b, eW = nb[3] !== b;
+        const edgeAny = eN || eE || eS || eW;
+        const rN = eN ? rampOf(nb[0]) : null, rE = eE ? rampOf(nb[1]) : null;
+        const rS = eS ? rampOf(nb[2]) : null, rW = eW ? rampOf(nb[3]) : null;
+
+        const rough = b.rough === undefined ? 0.5 : b.rough;
+        const detIx = Math.round(2 + tileLit * 0.8) < 0 ? 0 : (Math.round(2 + tileLit * 0.8) > 4 ? 4 : Math.round(2 + tileLit * 0.8));
+        const detCol = R.det[detIx];
+        const LAST = RAMP_N - 1;
 
         for (let py = 0; py < TILE; py++) {
           const wy = ty * TILE + py;
           const rowOff = (ly * TILE + py) * CHPX + lx * TILE;
-          for (let px = 0; px < TILE; px++) {
+          const v = (py + 0.5) / TILE;
+          let lit = lTL + (lBL - lTL) * v;                       // sol kenar ışığı
+          const litStep = ((lTR + (lBR - lTR) * v) - lit) / TILE; // sağa doğru artım
+          for (let px = 0; px < TILE; px++, lit += litStep) {
             const wx = tx * TILE + px;
 
-            /* Temel doku: dünya koordinatlı hash + bayer -> tekrar etmeyen grenli zemin */
             const h = U.hash2(wx, wy, Wd.seed);
             const bay = P.bayer(wx, wy);
-            let c = (h < 0.22 + bay * 0.10) ? alt : base;
-            if (h > 0.965) c = det;
 
-            /* Kenar harmanlaması: komşu biyoma doğru taramalı geçiş */
-            let bl = null, w = 0;
-            if (py < 4 && nb[0] !== b) { bl = nb[0]; w = (4 - py) / 5; }
-            else if (px > TILE - 5 && nb[1] !== b) { bl = nb[1]; w = (px - (TILE - 5)) / 5; }
-            else if (py > TILE - 5 && nb[2] !== b) { bl = nb[2]; w = (py - (TILE - 5)) / 5; }
-            else if (px < 4 && nb[3] !== b) { bl = nb[3]; w = (4 - px) / 5; }
-            if (bl && bay < w * 0.85) {
-              c = (h < 0.25) ? col(bl.alt) : col(bl.base);
+            /* Rampa konumu: taban orta basamak. Doku grenini ve yamaç
+               ışığını TEK bir sürekli değere toplayıp bayer ile
+               kuantalıyoruz — böylece 9 tonla sürekli gradyan görünümü
+               elde edilir (ordered dithering, 16-bit'in klasik hilesi). */
+            let lvl = MID + lit
+              + (h - 0.5) * 0.55              // zemin greni (ışık artık taşıyor)
+              + (bay - 0.5) * 0.95;           // sıralı dither -> sürekli gradyan
+
+            /* Kenar gölgesi bandı */
+            if (aoN) {
+              if ((aoN & 1) && py < 3) lvl -= (3 - py) * 0.85;
+              if ((aoN & 2) && px > TILE - 4) lvl -= (px - (TILE - 4)) * 0.85;
+              if ((aoN & 4) && py > TILE - 4) lvl -= (py - (TILE - 4)) * 0.85;
+              if ((aoN & 8) && px < 3) lvl -= (3 - px) * 0.85;
+            }
+
+            let c;
+            if (h > 0.972) {
+              c = detCol;                     // seyrek detay pikselleri
+            } else {
+              let ix = (lvl + 0.5) | 0;
+              c = R.ramp[ix < 0 ? 0 : ix > LAST ? LAST : ix];
+            }
+
+            /* Kenar harmanlaması: komşu biyoma doğru taramalı geçiş.
+               Hangi kenarların harmanlanacağı tile başına sabittir; karar
+               döngü dışında verilir, burada yalnızca ağırlık hesaplanır. */
+            if (edgeAny) {
+              let RB = null, w = 0;
+              /* Band 4 -> 8 piksel: dar bir bantta iki biyom düz bir duvar
+                 gibi çarpışıyordu. Genişlik ayrıca dünya koordinatlı gürültüyle
+                 dalgalandırılır; sınır ızgaraya değil araziye uyar. */
+              const wob = (U.hash2(wx, wy, Wd.seed + 7717) - 0.5) * 3.4;
+              if (eN && py < 8) { RB = rN; w = (8 - py + wob) * 0.125; }
+              else if (eE && px > TILE - 9) { RB = rE; w = (px - (TILE - 9) + wob) * 0.125; }
+              else if (eS && py > TILE - 9) { RB = rS; w = (py - (TILE - 9) + wob) * 0.125; }
+              else if (eW && px < 8) { RB = rW; w = (8 - px + wob) * 0.125; }
+              if (RB && bay < w * 0.95) {
+                let ix = (MID + (h - 0.5) * 1.15 + (bay - 0.5) * 0.85 + 0.5) | 0;
+                c = RB.ramp[ix < 0 ? 0 : ix > LAST ? LAST : ix];
+              }
             }
 
             buf[rowOff + px] = c;
@@ -586,6 +774,7 @@
     }
 
     ctx.putImageData(img, 0, 0);
+    cv._water = hasWater;                 // su yoksa parıltı geçişi hiç taranmaz
     /* Kaynak düğümleri ve POI süslemeleri canvas üstüne çizilir */
     for (let ly = 0; ly < CH; ly++) for (let lx = 0; lx < CH; lx++) {
       const tx = t0x + lx, ty = t0y + ly;
@@ -779,15 +968,62 @@
     return U.pad2(Math.floor(mins / 60)) + ':' + U.pad2(mins % 60);
   };
   /* Gece/gündüz renk katmanı */
+  /* ------------------------------------------------------------------
+   * GÜNÜN SAATİNE GÖRE RENK DERECELENDİRMESİ
+   *
+   * Tek bir siyah alfa örtüsü sahneyi yalnızca karartır ve donuklaştırır.
+   * 16-bit oyunların gece/gündüzü ise renk KAYDIRIR: gece gölgeler maviye
+   * düşer ama ay ışığı vurguları soğuk-parlak kalır; şafak ve akşam sıcak
+   * bir tabaka ekler. Bunu iki geçişle yapıyoruz — çarpımsal bir renk
+   * (gölgeleri boyar) ve üstüne hafif bir ekleme (vurguları ısıtır).
+   * ---------------------------------------------------------------- */
   Wd.lightOverlay = function () {
     const t = Wd.time;
-    let a = 0, col = '#0a1030';
-    if (t < 0.20) a = 0.55;
-    else if (t < 0.30) { a = U.lerp(0.55, 0, (t - 0.20) / 0.10); col = '#3a2050'; }
-    else if (t < 0.70) a = 0;
-    else if (t < 0.82) { a = U.lerp(0, 0.45, (t - 0.70) / 0.12); col = '#40203a'; }
-    else a = 0.55;
-    return { a, col };
+    /* mul: multiply katmanı (renk + alfa), add: lighter katmanı */
+    let mul = '#33509a', mulA = 0, add = '#000000', addA = 0;
+    if (t < 0.18) {                       // derin gece
+      mul = '#2c4b96'; mulA = 0.52; add = '#22407a'; addA = 0.07;
+    } else if (t < 0.30) {                // şafak
+      const k = (t - 0.18) / 0.12;
+      mul = U.mixHex('#2c4b96', '#ffb27a', k); mulA = U.lerp(0.52, 0.10, k);
+      add = '#ff9a5a'; addA = U.lerp(0.07, 0.16, k) * (1 - Math.abs(k - 0.6) * 1.2);
+    } else if (t < 0.66) {                // gündüz
+      mulA = 0; add = '#fff2c8'; addA = 0.04;
+    } else if (t < 0.82) {                // akşam
+      const k = (t - 0.66) / 0.16;
+      mul = U.mixHex('#ffc890', '#2c4b96', k); mulA = U.lerp(0.06, 0.48, k);
+      add = '#ff7a4a'; addA = 0.16 * (1 - Math.abs(k - 0.35) * 1.6);
+    } else {                              // gece
+      mul = '#2c4b96'; mulA = 0.52; add = '#22407a'; addA = 0.07;
+    }
+    return { mul, mulA: Math.max(0, mulA), add, addA: Math.max(0, addA),
+             /* geriye dönük uyum: eski çağıranlar için düz alfa */
+             a: Math.max(0, mulA), col: mul };
+  };
+
+  /* Bu chunk'ta hiç su var mı? (önbellekteki karo görüntüsünden okunur) */
+  Wd.chunkHasWater = function (cx, cy) {
+    const c = Wd._chunks.get(cx + ',' + cy);
+    return c ? !!c._water : true;         // henüz üretilmediyse temkinli davran
+  };
+
+  /* Sahnenin üstüne uygulanacak iki geçişli derecelendirme */
+  Wd.applyGrade = function (ctx, w, h) {
+    const L = Wd.lightOverlay();
+    if (L.mulA > 0.02) {
+      ctx.globalCompositeOperation = 'multiply';
+      ctx.globalAlpha = L.mulA;
+      ctx.fillStyle = L.mul;
+      ctx.fillRect(0, 0, w, h);
+    }
+    if (L.addA > 0.05) {
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = L.addA;
+      ctx.fillStyle = L.add;
+      ctx.fillRect(0, 0, w, h);
+    }
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = 1;
   };
 
   /* ---------------------------------------------------------------

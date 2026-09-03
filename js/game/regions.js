@@ -71,12 +71,14 @@
   ];
 
   const R = QW.Regions = { cells: [], passes: [], _grid: null, _gw: 0, _cell: 24 };
+  let nWarp = null;                        // sınır bükme gürültüsü
 
   /* ------------------------------------------------------------------
    * ÜRETİM — Voronoi hücreleri + geçitler
    * ---------------------------------------------------------------- */
   R.generate = function (seed, W, H) {
     const rnd = U.rng(seed ^ 0x5eed1e);
+    nWarp = U.Perlin((seed ^ 0x9e37) >>> 0);
     R.cells = [];
     R.passes = [];
 
@@ -210,11 +212,26 @@
   /* ------------------------------------------------------------------
    * SORGU
    * ---------------------------------------------------------------- */
+  /* ------------------------------------------------------------------
+   * BÖLGE SORGUSU — ALAN BÜKMESİ İLE
+   *
+   * Arama 24 tile'lık kaba bir ızgaraya yuvarlanıyor; bu, bölge sınırlarını
+   * eksene hizalı düz duvarlara çeviriyordu. Yüzlerce tile boyunca dümdüz
+   * giden bir biyom sınırı hiçbir dönemde doğal görünmez. Çözüm üretimi
+   * değiştirmek değil, SORGU koordinatını gürültüyle dağıtmak: ızgara aynı
+   * kalır, sınır araziye uyan düzensiz bir hat hâline gelir.
+   * ---------------------------------------------------------------- */
+  const WARP_AMP = 21;                    // ~ hücre boyu: ızgarayı tamamen kırar
   R.at = function (tx, ty) {
     if (!R._grid) return null;
     const CS = R._cell;
-    const gx = U.clamp(Math.floor(tx / CS), 0, R._gw - 1);
-    const gy = U.clamp(Math.floor(ty / CS), 0, R._gh - 1);
+    let qx = tx, qy = ty;
+    if (nWarp) {
+      qx = tx + (nWarp.n01(tx * 0.021, ty * 0.021, 2) - 0.5) * 2 * WARP_AMP;
+      qy = ty + (nWarp.n01(tx * 0.021 + 83, ty * 0.021 - 47, 2) - 0.5) * 2 * WARP_AMP;
+    }
+    const gx = U.clamp(Math.floor(qx / CS), 0, R._gw - 1);
+    const gy = U.clamp(Math.floor(qy / CS), 0, R._gh - 1);
     return R.cells[R._grid[gy * R._gw + gx]] || null;
   };
 

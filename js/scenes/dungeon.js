@@ -241,8 +241,8 @@
       }
 
       /* Oda çerçevesi */
-      P.frame(ctx, ox - 3, oy - 3, ROOM_W + 6, ROOM_H + 6, U.shade(c.wall, -0.15), 2);
-      P.frame(ctx, ox - 5, oy - 5, ROOM_W + 10, ROOM_H + 10, U.shade(c.wall, -0.5), 2);
+      P.bevel(ctx, ox - 3, oy - 3, ROOM_W + 6, ROOM_H + 6, U.shade(c.wall, -0.15), 2);
+      P.bevel(ctx, ox - 5, oy - 5, ROOM_W + 10, ROOM_H + 10, U.shade(c.wall, -0.5), 2);
 
       drawHud(ctx);
     }
@@ -403,7 +403,7 @@
       const bx = Math.max(2, (S.w - w) / 2 | 0);
       const by = origin.y - 18;
       ctx.fillStyle = 'rgba(5,7,13,0.85)'; ctx.fillRect(bx, by, w, 14);
-      P.frame(ctx, bx, by, w, 14, '#26365c');
+      P.bevel(ctx, bx, by, w, 14, '#26365c');
       P.text(ctx, msg, bx + 4, by + 4, '#dff6ff', 1, '#000');
     }
   }

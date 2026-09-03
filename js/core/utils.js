@@ -148,6 +148,44 @@ window.QW = window.QW || {};
     return U.hex(U.lerp(A[0], B[0], t), U.lerp(A[1], B[1], t), U.lerp(A[2], B[2], t));
   };
 
+  /* ------------------------------------------------------------------
+   * 16-BİT TON RAMPASI
+   *
+   * 8-bit ile 16-bit arasındaki fark renk SAYISI değil, rengin nasıl
+   * koyulaştığıdır. NES palet donuk siyaha doğru iner; SNES/GBA sanatçısı
+   * gölgeyi maviye/mora, ışığı sarıya kaydırır (hue shifting). Aynı
+   * parlaklık farkı, hue kaydırıldığında gözde "boyanmış" izlenimi bırakır.
+   *
+   * shift: -1 gölge (soğuk, doygunluk artar), +1 ışık (sıcak, doygunluk düşer)
+   * ---------------------------------------------------------------- */
+  U.rampStep = function (hexc, k) {
+    const [r, g, b] = U.parseHex(hexc);
+    /* k > 0 aydınlat, k < 0 koyulaştır */
+    const t = Math.abs(k);
+    let R, G, B;
+    if (k >= 0) {
+      /* Işık: sarıya doğru — kırmızı ve yeşil daha hızlı yükselir */
+      R = r + (255 - r) * t * 1.00;
+      G = g + (255 - g) * t * 0.94;
+      B = b + (255 - b) * t * 0.66;
+    } else {
+      /* Gölge: mora/maviye doğru — mavi en az düşer, kırmızı en çok */
+      R = r * (1 - t * 1.00);
+      G = g * (1 - t * 0.92);
+      B = b * (1 - t * 0.62) + t * 16;
+    }
+    return U.hex(R, G, B);
+  };
+
+  /* Bir taban renkten n basamaklı simetrik rampa üretir (koyudan açığa). */
+  U.ramp = function (hexc, n, spread) {
+    n = n || 5; spread = spread === undefined ? 0.42 : spread;
+    const out = [];
+    const mid = (n - 1) / 2;
+    for (let i = 0; i < n; i++) out.push(U.rampStep(hexc, ((i - mid) / mid) * spread));
+    return out;
+  };
+
   /* ---------------- çeşitli ---------------- */
   U.now = () => performance.now();
   U.pad2 = n => (n < 10 ? '0' : '') + n;

@@ -126,6 +126,7 @@
     draw(ctx) {
       const S = P.Screen;
       Wd.draw(ctx, cam.x, cam.y, S.w, S.h);
+      drawWater(ctx);
       drawTutorials(ctx);
 
       /* Y sıralı çizim — derinlik hissi */
@@ -138,16 +139,11 @@
       QW.Vehicles.draw(ctx, px, py, QW.Player.dir);
       QW.Player.draw(ctx, px, py);
 
-      drawInteractHint(ctx);
+      /* Gece/gündüz renk derecelendirmesi — YALNIZCA dünya katmanına.
+         Arayüz bundan sonra çizilir; saat, okunabilirliği değiştirmemeli. */
+      Wd.applyGrade(ctx, S.w, S.h);
 
-      /* Gece/gündüz ve hava katmanları */
-      const L = Wd.lightOverlay();
-      if (L.a > 0) {
-        ctx.fillStyle = L.col;
-        ctx.globalAlpha = L.a;
-        ctx.fillRect(0, 0, S.w, S.h);
-        ctx.globalAlpha = 1;
-      }
+      drawInteractHint(ctx);
       QW.Weather.draw(ctx);
 
       /* Düşük oksijen / kritik can vinyeti */
@@ -209,6 +205,53 @@
   }
 
   /* Kamplarda ve istasyonda NPC'ler görünür */
+  /* --------------------------------------------------------------------
+   * SU PARILTISI
+   *
+   * Chunk'lar önbelleğe alınmış durağan görüntülerdir; su ise 16-bit
+   * oyunlarda daima hareketlidir. Bu yüzden deniz tile'larının üzerine
+   * ekran uzayında ince, kayan bir parıltı bandı ve kıyı köpüğü çizilir.
+   * Yalnızca GÖRÜNEN su tile'ları taranır.
+   * ------------------------------------------------------------------ */
+  function drawWater(ctx) {
+    const S = P.Screen, TL = Wd.TILE;
+    const t = performance.now() / 1000;
+    const x0 = Math.floor(cam.x / TL), y0 = Math.floor(cam.y / TL);
+    const x1 = Math.ceil((cam.x + S.w) / TL), y1 = Math.ceil((cam.y + S.h) / TL);
+    const CHS = Wd.CH;
+    for (let ty = y0; ty <= y1; ty++) {
+      /* Susuz chunk şeritlerini tile tile taramaya gerek yok */
+      for (let tx = x0; tx <= x1; tx++) {
+        if ((tx & (CHS - 1)) === 0 || tx === x0) {
+          if (!Wd.chunkHasWater(Math.floor(tx / CHS), Math.floor(ty / CHS))) {
+            tx += CHS - 1 - (tx % CHS) ; continue;
+          }
+        }
+        const b = Wd.biomeAt(tx, ty);
+        if (b.t !== Wd.T.WATER) continue;
+        const sx = tx * TL - cam.x, sy = ty * TL - cam.y;
+        /* Kıyı köpüğü: karaya komşu su kenarında beyaz bir çizgi */
+        const land = Wd.biomeAt(tx, ty - 1).t !== Wd.T.WATER;
+        if (land) {
+          const ph = Math.sin(t * 2.1 + tx * 0.7) * 0.5 + 0.5;
+          ctx.fillStyle = 'rgba(226,244,255,' + (0.16 + ph * 0.26).toFixed(3) + ')';
+          ctx.fillRect(sx, sy + (ph > 0.55 ? 0 : 1), TL, 1);
+        }
+        /* Kayan parıltı bandı — dünya koordinatına bağlı, tekrarsız */
+        const w1 = Math.sin((tx * 0.9 + ty * 1.7) + t * 1.15);
+        if (w1 > 0.62) {
+          ctx.fillStyle = 'rgba(180,226,246,0.20)';
+          ctx.fillRect(sx + 2, sy + 5 + ((t * 6 + tx) % 4 | 0), TL - 5, 1);
+        }
+        const w2 = Math.sin((tx * 1.6 - ty * 0.8) - t * 0.85);
+        if (w2 > 0.80) {
+          ctx.fillStyle = 'rgba(226,244,255,0.16)';
+          ctx.fillRect(sx + 6, sy + 10, 4, 1);
+        }
+      }
+    }
+  }
+
   function drawNpcs(ctx) {
     Wd.pois.forEach(p => {
       const ids = p.npc ? [p.npc] : (p.npcs || []);
@@ -217,8 +260,7 @@
         const x = (p.x * Wd.TILE + (i - (ids.length - 1) / 2) * 20) - cam.x - 6;
         const y = p.y * Wd.TILE - cam.y - 10;
         if (x < -20 || y < -20 || x > P.Screen.w + 20 || y > P.Screen.h + 20) return;
-        ctx.fillStyle = 'rgba(0,0,0,0.32)';
-        ctx.fillRect(x + 3, y + 15, 6, 2);
+        QW.Sprites.shadow(ctx, x + 6, y + 16, 9);
         const f = Math.floor(performance.now() / 600 + i) % 2;
         QW.Sprites.npc(ctx, x, y, def.sprite, 'down', f);
         /* Konuşma işareti */
@@ -292,7 +334,7 @@
     const y = S.h - (S.portrait ? 104 : 34);
     ctx.fillStyle = 'rgba(5,7,13,0.80)';
     ctx.fillRect(x, y - 4, w, 15);
-    P.frame(ctx, x, y - 4, w, 15, '#26365c');
+    P.bevel(ctx, x, y - 4, w, 15, '#26365c');
     P.text(ctx, txt, x + 4, y + 1, '#dff6ff', 1, '#000000');
     /* A tuşu göstergesi */
     ctx.fillStyle = '#4df2c8';

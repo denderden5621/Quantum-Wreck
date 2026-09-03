@@ -293,9 +293,7 @@
    * ÇİZİM
    * ------------------------------------------------------------- */
   Pl.draw = function (ctx, sx, sy) {
-    /* Gölge */
-    ctx.fillStyle = 'rgba(0,0,0,0.35)';
-    ctx.fillRect((sx + 3) | 0, (sy + 15) | 0, 6, 2);
+    QW.Sprites.shadow(ctx, sx + 6, sy + 16, 9);
     QW.Sprites.player(ctx, sx, sy, Pl.look, Pl.dir, Pl.frame);
     if (Pl.invuln > 0 && Math.floor(Pl.invuln * 10) % 2 === 0) {
       ctx.globalCompositeOperation = 'lighter';

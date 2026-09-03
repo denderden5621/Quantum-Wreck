@@ -123,6 +123,57 @@ kılcal kanallarla dışarı taşıyan **Dri-Fit** teknik kumaş nemin zırh iç
 birikmesini önleyip yenilenmeyi hızlandırır, kalın ara tabanlı **yastıklamalı
 keşif botları** zorlu zeminde darbeyi emer.
 
+### Grafik: 16-bit katmanı
+8-bit ile 16-bit arasındaki fark renk SAYISI değildir — rengin nasıl
+koyulaştığı, ışığın nereden geldiği ve yüzeyin hacmi olup olmadığıdır.
+Oyunun çizim katmanı bu üç eksende yeniden kuruldu:
+
+**Hue kaydırmalı ton rampası.** NES paleti donuk siyaha iner; SNES/GBA
+sanatçısı gölgeyi maviye-mora, ışığı sarıya kaydırır. `U.rampStep()` bunu
+yapar: her biyom 3 renk yerine **9 tonluk** bir rampaya sahip, rampanın
+ışık ucu biyomun kendi güneşine (`warm`), gölge ucu gökyüzü dönüş ışığına
+(`cool`) doğru çekilir. Çölün gölgesi mor, buzulunki derin mavidir.
+
+**Yamaç ışığı.** Arazi artık düz bir renk tarlası değil. Yükseklik alanının
+eğimi alınıp sol üstten gelen ışığa göre rampada yukarı/aşağı kayılır. Işık
+tile merkezlerinde hesaplanıp piksel çözünürlüğünde doğrusal aradeğerlenir —
+tile başına sabit bir ışık 16 piksellik "yorgan kareleri" üretiyordu.
+Gölgelendirme, biyom sınırlayıcılarından geçmemiş HAM yüksekliği okur:
+sınırlı değer bölge içinde yüksekliği sabitleyip araziyi düzleştiriyordu.
+
+**Sıralı dither.** Doku greni ve yamaç ışığı tek bir sürekli değere toplanıp
+Bayer matrisiyle kuantalanır. 9 tonla sürekli gradyan görünümü elde edilir —
+16-bit'in klasik hilesi.
+
+**Kenar gölgesi (AO).** Su, uçurum ve yüksek kaya kenarına komşu zemin
+koyulaşır; arazi kendi üstüne oturur.
+
+**Sprite hacmi.** 30 yaratık matrisi elden yeniden boyanmadı; hacim
+silüetten TÜRETİLİR (`S.shade16`): sol/üst kenar ışık alır, sağ/alt kenar
+gölgede kalır, uç pikseller dış hatta döner. Dış hat silüetin İÇİNE çizilir,
+böylece sprite büyümez ve ölçülen siluet ayırt ediciliği bozulmaz.
+
+**Yer gölgesi.** Sert dikdörtgen yerine iki tonlu elips. Figürü zemine
+oturtan şey budur; onsuz sprite arazinin üstünde yüzer.
+
+**Renk derecelendirmesi.** Gece artık siyah alfa örtüsü değil: çarpımsal bir
+katman gölgeleri boyar, üstüne hafif bir ekleme vurguları ısıtır. Gece
+mavi-aylı, şafak ve akşam sıcaktır. Derecelendirme yalnızca dünya katmanına
+uygulanır — saat, arayüzün okunabilirliğini değiştirmez.
+
+**Su.** Chunk'lar önbelleğe alınmış durağan görüntülerdir; su ise 16-bit
+oyunlarda daima hareketlidir. Deniz tile'larının üstüne ekran uzayında kayan
+parıltı bandı ve kıyı köpüğü çizilir. Susuz chunk'lar hiç taranmaz.
+
+**Kabartma arayüz.** `P.bevel()` — çerçevenin üst-sol kenarı ışık, alt-sağ
+kenarı gölge alır; panel çizim değil, yüzeyden yükselen levha olur.
+
+**Organik bölge sınırları.** Bölge araması 24 tile'lık kaba bir ızgaraya
+yuvarlanıyordu; bu, biyom sınırlarını eksene hizalı düz duvarlara çeviriyordu.
+Üretim değil SORGU koordinatı gürültüyle büküldü: ızgara aynı kalır, sınır
+araziye uyan düzensiz bir hat olur. Bölge kimliği (%94) ve erişilebilirlik
+(0 ulaşılamayan POI) etkilenmedi.
+
 ### Game feel · Juice
 Vuruşun teknik olarak isabet etmesi yetmez; **isabet ettiği hissedilmelidir.**
 Her darbede birlikte çalışan katman: **hit-stop** (darbe anında 50–130 ms
@@ -416,6 +467,13 @@ Oyun tasarımı literatüründeki ölçütler nereye oturuyor — tahmin değil,
 | **Element ilişkisi kapsamı** | 11/27 yaratık | **26/27** | zafiyet ve direnç çiftinin ikisi de tanımlı |
 | **Oyuncunun erişebildiği element** | 2 (ısı, elektrik) | **4** | kriyo ve dağlama silahları eklendi |
 | **Cihazın kendi hâkimine üstünlüğü** | — | **×1,5 – ×4,6** | 40 savaş ortalaması, kendi hâkimi vs yabancı hâkim |
+| **Biyom başına ton sayısı** | 3 | **9** | hue kaydırmalı rampa (`U.ramp`) |
+| **Ekrandaki ayrık renk** | 58 | **78** | aynı konum, aynı saat, gerçek kare taraması |
+| **Yaratık sprite'ı başına renk** (ortalama) | 4,1 | **9,4** | 27 yaratık, alfa > 40 pikseller |
+| **Oyuncu sprite'ı renk sayısı** | 11 | **27** | tek kare |
+| **Yükseklik alanının yayılımı** (gölge girdisi) | 0,95–0,99'a çakılı | **0,18–1,31** | 6000 tile örneklemesi; sınırlayıcılar araziyi düzleştiriyordu |
+| **Kare süresi** (medyan / p99 / max) | 16,7 / 17,3 / 51,8 ms | **16,7 / 17,3 / 31,5 ms** | 573 kare; su taraması chunk bayrağıyla atlanıyor |
+| **Chunk üretimi** (medyan) | 2,2 ms | **4,8 ms** | yamaç ışığı + AO + rampa maliyeti |
 | **Dar geçit başarısı** (köşe kesme) | %77,7 | **%86,7** | 211 rastgele 10-tile'lık geçiş, aynı tohum, oyunun kendi çarpışmasıyla |
 | **Duvara sürtme oranı** | %1,5 | **%0,8** | aynı koşu, hareketsiz kalan kare oranı |
 

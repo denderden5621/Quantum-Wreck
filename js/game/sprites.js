@@ -27,10 +27,100 @@
       }
     }
   }
+  /* 16-bit palet: düz koyu/açık yerine hue kaydırmalı rampa.
+     h = tepe ışığı, s/s2 = gölge basamakları, o = dış hat. */
   function makePal(c, c2) {
-    return { a: c, b: c2, d: U.shade(c2, -0.45), l: U.shade(c, 0.35), e: '#ff5d7a', w: '#ffffff', k: '#0b0f18' };
+    return {
+      a: c,
+      b: c2,
+      d: U.rampStep(c2, -0.45),
+      l: U.rampStep(c, 0.30),
+      h: U.rampStep(c, 0.58),
+      s: U.rampStep(c, -0.26),
+      s2: U.rampStep(c, -0.50),
+      o: U.mixHex(U.rampStep(c, -0.70), '#141a2e', 0.55),
+      e: '#ff5d7a', w: '#ffffff', k: '#0b0f18'
+    };
   }
   S.paint = paint;
+
+  /* =====================================================================
+   * 16-BİT HACİM GÖLGELENDİRMESİ
+   *
+   * 8-bit sprite düz renk alanlarından oluşur; 16-bit sprite'ta hacim
+   * vardır: ışığa bakan kenar parlar, karşı kenar koyulaşır, silüetin
+   * çevresini koyu bir dış hat sarar. 30 yaratık matrisini elden yeniden
+   * boyamak yerine bunu silüetten TÜRETİYORUZ — ışık sol üstten gelir.
+   *
+   * Dış hat silüetin İÇİNE çizilir: sprite büyümez, çarpışma kutuları ve
+   * ölçülen siluet ayırt ediciliği bozulmaz.
+   * =================================================================== */
+  function shade16(cv, opt) {
+    opt = opt || {};
+    const rim = opt.rim === undefined ? 0.42 : opt.rim;
+    const shd = opt.shade === undefined ? 0.34 : opt.shade;
+    const ol = opt.outline === undefined ? 0.55 : opt.outline;
+    const ctx = P.ctx(cv);
+    const w = cv.width, h = cv.height;
+    if (!w || !h) return cv;
+    const img = ctx.getImageData(0, 0, w, h);
+    const d = img.data;
+    const A = i => d[i * 4 + 3] > 40;
+    const out = new Uint8ClampedArray(d);
+
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const i = y * w + x;
+        if (!A(i)) continue;
+        const up = y > 0 && A(i - w), dn = y < h - 1 && A(i + w);
+        const lf = x > 0 && A(i - 1), rt = x < w - 1 && A(i + 1);
+        const edges = (up ? 0 : 1) + (dn ? 0 : 1) + (lf ? 0 : 1) + (rt ? 0 : 1);
+        if (!edges) continue;                       // iç piksel: dokunma
+
+        const o = i * 4;
+        let k = 0;
+        /* Sol/üst kenar ışığa bakar, sağ/alt kenar gölgede kalır */
+        if (!up || !lf) k += rim;
+        if (!dn || !rt) k -= shd;
+        /* Üç yanı boşluk olan uç pikseller dış hat sayılır */
+        if (edges >= 3 || (!dn && !rt && !lf) || (!dn && edges >= 2 && y > h * 0.6)) k = -ol;
+
+        if (k === 0) continue;
+        if (k > 0) {
+          out[o]     = d[o]     + (255 - d[o]) * k;
+          out[o + 1] = d[o + 1] + (255 - d[o + 1]) * k * 0.94;
+          out[o + 2] = d[o + 2] + (255 - d[o + 2]) * k * 0.66;
+        } else {
+          const t = -k;
+          out[o]     = d[o] * (1 - t);
+          out[o + 1] = d[o + 1] * (1 - t * 0.92);
+          out[o + 2] = d[o + 2] * (1 - t * 0.62) + t * 20;
+        }
+      }
+    }
+    d.set(out);
+    ctx.putImageData(img, 0, 0);
+    return cv;
+  }
+  S.shade16 = shade16;
+
+  /* 16-bit yer gölgesi: sert dikdörtgen yerine iki tonlu elips. Figürü
+     zemine oturtan şey budur; onsuz sprite arazinin üstünde yüzer. */
+  S.shadow = function (ctx, cx, cy, w, strength) {
+    const a = strength === undefined ? 1 : strength;
+    const hw = Math.max(2, w >> 1), hh = Math.max(1, Math.round(w * 0.28));
+    ctx.fillStyle = 'rgba(8,10,22,' + (0.30 * a).toFixed(3) + ')';
+    for (let y = -hh; y <= hh; y++) {
+      const dx = Math.round(hw * Math.sqrt(Math.max(0, 1 - (y * y) / (hh * hh))));
+      if (dx > 0) ctx.fillRect((cx - dx) | 0, (cy + y) | 0, dx * 2, 1);
+    }
+    ctx.fillStyle = 'rgba(8,10,22,' + (0.22 * a).toFixed(3) + ')';
+    const iw = Math.max(1, hw - 1), ih = Math.max(1, hh - 1);
+    for (let y = -ih; y <= ih; y++) {
+      const dx = Math.round(iw * Math.sqrt(Math.max(0, 1 - (y * y) / (ih * ih))));
+      if (dx > 0) ctx.fillRect((cx - dx) | 0, (cy + y) | 0, dx * 2, 1);
+    }
+  };
 
   /* =====================================================================
    * OYUNCU / NPC KARAKTERİ (12 x 16)
@@ -100,7 +190,8 @@
   /* Önbellekli oyuncu karesi */
   S.player = function (ctx, x, y, look, dir, frame) {
     const key = 'pl_' + S.lookKey(look) + '_' + dir + '_' + frame;
-    const cv = P.cached(key, 12, 16, c => drawBody(c, look, dir, frame, 0, 0));
+    const cv = P.cached(key, 12, 16,
+      (c, cav) => { drawBody(c, look, dir, frame, 0, 0); shade16(cav, { rim: 0.30, shade: 0.26, outline: 0.42 }); });
     if (dir === 'left') {
       ctx.save();
       ctx.translate((x | 0) + 12, y | 0); ctx.scale(-1, 1);
@@ -122,7 +213,8 @@
   S.npc = function (ctx, x, y, spr, dir, frame) {
     const look = S.npcLook(spr.s);
     const key = 'npc_' + spr.s + '_' + (dir || 'down') + '_' + (frame || 0);
-    const cv = P.cached(key, 12, 16, c => drawBody(c, look, dir || 'down', frame || 0, 0, 0));
+    const cv = P.cached(key, 12, 16,
+      (c, cav) => { drawBody(c, look, dir || 'down', frame || 0, 0, 0); shade16(cav, { rim: 0.30, shade: 0.26, outline: 0.42 }); });
     ctx.drawImage(cv, x | 0, y | 0);
   };
 
@@ -481,7 +573,7 @@
     scale = scale || 1;
     const key = 'cr_' + shape + '_' + spr.c + '_' + spr.c2 + '_' + scale;
     const cv = P.cached(key, rows[0].length * scale, rows.length * scale,
-      c => paint(c, rows, 0, 0, scale, makePal(spr.c, spr.c2)));
+      (c, cav) => { paint(c, rows, 0, 0, scale, makePal(spr.c, spr.c2)); shade16(cav); });
     if (flip) {
       ctx.save(); ctx.translate((x | 0) + cv.width, y | 0); ctx.scale(-1, 1);
       ctx.drawImage(cv, 0, 0); ctx.restore();
@@ -539,7 +631,7 @@
     const c2 = type === 'drone' ? '#26386e' : '#6a4a12';
     const key = 'veh_' + type + '_' + scale;
     const cv = P.cached(key, rows[0].length * scale, rows.length * scale,
-      cx => paint(cx, rows, 0, 0, scale, makePal(c, c2)));
+      (cx, cav) => { paint(cx, rows, 0, 0, scale, makePal(c, c2)); shade16(cav); });
     if (flip) {
       ctx.save(); ctx.translate((x | 0) + cv.width, y | 0); ctx.scale(-1, 1);
       ctx.drawImage(cv, 0, 0); ctx.restore();
@@ -608,7 +700,8 @@
     const ic = (item && item.icon) || { s: 'box', c: '#7d93a8' };
     size = size || 32;
     const s = Math.max(1, Math.floor(size / 16));
-    return P.cached('ic_' + itemId + '_' + s, 16 * s, 16 * s, ctx => icon(ctx, ic, s));
+    return P.cached('ic_' + itemId + '_' + s, 16 * s, 16 * s,
+      (ctx, cav) => { icon(ctx, ic, s); shade16(cav, { rim: 0.38, shade: 0.30, outline: 0.50 }); });
   };
   S.iconDataURL = function (itemId, size) { return S.iconCanvas(itemId, size).toDataURL(); };
 
